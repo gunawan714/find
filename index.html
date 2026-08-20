@@ -3,128 +3,107 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>👶 SafeTrack - Pantau Lokasi Anak</title>
+    <title>👶 SafeTrack – Pantau Lokasi Anak</title>
 
-    <!-- Leaflet CSS & JS -->
+    <!-- Leaflet CSS & JS (peta) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
     </script>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
+    <!-- Google Font (Quicksand) -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Font Awesome Icons -->
+    <!-- Font Awesome 6 (Ikon) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <style>
-        /* ===== RESET & BASE ===== */
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
+        /* ----- RESET & VARIABEL ----- */
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         :root {
+            --primary: #6C5CE7;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
             --coral: #FF6B6B;
-            --teal: #4ECDC4;
-            --sunny: #FFE66D;
-            --mint: #A8E6CF;
-            --peach: #FF8A5C;
-            --purple: #6C5CE7;
             --pink: #FD79A8;
             --sky: #74B9FF;
             --dark: #2D3436;
             --gray: #636E72;
             --light-gray: #DFE6E9;
             --white: #FFFFFF;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.18);
-            --radius: 24px;
-            --radius-sm: 14px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        html {
-            font-size: 16px;
-            scroll-behavior: smooth;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.10);
+            --radius: 28px;
+            --radius-sm: 16px;
+            --transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --font: 'Quicksand', sans-serif;
         }
 
         body {
-            font-family: 'Quicksand', sans-serif;
-            background: linear-gradient(145deg, #FFF9F0 0%, #F8F0FF 100%);
+            font-family: var(--font);
+            background: linear-gradient(160deg, #FFF9F0 0%, #F4F0FF 100%);
             min-height: 100vh;
-            padding: 16px;
-            padding-bottom: 100px;
+            padding: 16px 12px 90px;
             color: var(--dark);
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--light-gray);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--teal);
-            border-radius: 10px;
-        }
-
-        /* ===== APP CONTAINER ===== */
-        #app {
+        /* ----- APP CONTAINER ----- */
+        .app-container {
             max-width: 480px;
             margin: 0 auto;
-            position: relative;
         }
 
-        /* ===== HEADER ===== */
+        /* ----- HEADER ----- */
         .app-header {
-            background: linear-gradient(135deg, var(--purple), var(--pink));
+            background: linear-gradient(135deg, var(--primary), var(--pink));
             padding: 20px 24px 18px;
             border-radius: var(--radius);
             margin-bottom: 20px;
             box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
+            color: var(--white);
         }
 
         .app-header::before {
-            content: '✨';
+            content: '🌟';
             position: absolute;
-            top: -10px;
+            top: -20px;
             right: -10px;
             font-size: 80px;
             opacity: 0.15;
-            transform: rotate(15deg);
+            transform: rotate(20deg);
         }
 
         .app-header::after {
-            content: '🌟';
+            content: '✨';
             position: absolute;
-            bottom: -20px;
+            bottom: -30px;
             left: -10px;
-            font-size: 60px;
-            opacity: 0.12;
+            font-size: 100px;
+            opacity: 0.10;
         }
 
         .header-top {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .header-icon {
-            font-size: 32px;
+            font-size: 34px;
             animation: bounce 2s infinite;
         }
 
@@ -139,10 +118,9 @@
         }
 
         .header-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
-            color: var(--white);
-            letter-spacing: -0.3px;
+            letter-spacing: -0.5px;
         }
 
         .header-title span {
@@ -152,74 +130,76 @@
 
         .header-badge {
             background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(6px);
             padding: 4px 14px;
             border-radius: 30px;
-            color: var(--white);
             font-size: 11px;
             font-weight: 600;
-            letter-spacing: 0.5px;
             border: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .header-sub {
-            color: rgba(255, 255, 255, 0.92);
-            font-size: 13px;
-            font-weight: 400;
+            font-size: 14px;
+            opacity: 0.9;
             margin-top: 6px;
             display: flex;
             align-items: center;
             gap: 8px;
+            position: relative;
+            z-index: 2;
         }
 
         .header-sub i {
-            font-size: 12px;
-            opacity: 0.8;
+            font-size: 13px;
         }
 
-        /* ===== PHONE INPUT CARD ===== */
+        /* ----- KARTU INPUT NOMOR ----- */
         .input-card {
             background: var(--white);
             border-radius: var(--radius);
-            padding: 18px 20px;
+            padding: 14px 18px;
             box-shadow: var(--shadow);
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             gap: 12px;
-            transition: var(--transition);
             border: 2px solid transparent;
+            transition: var(--transition);
         }
 
         .input-card:focus-within {
-            border-color: var(--teal);
-            box-shadow: var(--shadow-hover);
+            border-color: var(--secondary);
+            box-shadow: 0 12px 40px rgba(78, 205, 196, 0.20);
         }
 
         .input-card .icon-wrap {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, var(--sunny), var(--peach));
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), var(--coral));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 20px;
             color: var(--white);
-            font-size: 18px;
             flex-shrink: 0;
         }
 
         .input-card input {
             flex: 1;
+            min-width: 140px;
             border: none;
             outline: none;
-            font-family: 'Quicksand', sans-serif;
+            font-family: var(--font);
             font-size: 16px;
             font-weight: 600;
             color: var(--dark);
             background: transparent;
-            padding: 8px 0;
-            min-width: 0;
+            padding: 10px 0;
         }
 
         .input-card input::placeholder {
@@ -229,24 +209,26 @@
         }
 
         .input-card .btn-track {
-            background: linear-gradient(135deg, var(--teal), #45B7AA);
+            background: linear-gradient(135deg, var(--secondary), #45B7AA);
             border: none;
             color: var(--white);
-            font-family: 'Quicksand', sans-serif;
+            font-family: var(--font);
             font-weight: 700;
-            font-size: 14px;
-            padding: 10px 20px;
-            border-radius: 30px;
+            font-size: 15px;
+            padding: 12px 24px;
+            border-radius: 40px;
             cursor: pointer;
             transition: var(--transition);
+            box-shadow: 0 4px 16px rgba(78, 205, 196, 0.35);
+            display: flex;
+            align-items: center;
+            gap: 8px;
             white-space: nowrap;
-            flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.35);
         }
 
         .input-card .btn-track:hover {
             transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.45);
+            box-shadow: 0 8px 28px rgba(78, 205, 196, 0.45);
         }
 
         .input-card .btn-track:active {
@@ -254,36 +236,34 @@
         }
 
         .input-card .btn-track:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
-        /* ===== STATUS BAR ===== */
-        .status-bar {
-            display: flex;
-            flex-wrap: wrap;
+        /* ----- STATUS BAR (Provider, IMEI, Status) ----- */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
             margin-bottom: 16px;
         }
 
         .status-item {
-            flex: 1;
-            min-width: 100px;
             background: var(--white);
             border-radius: var(--radius-sm);
-            padding: 12px 16px;
+            padding: 12px 14px;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             display: flex;
             align-items: center;
             gap: 10px;
             transition: var(--transition);
-            border-left: 4px solid var(--teal);
+            border-left: 4px solid var(--secondary);
         }
 
         .status-item .stat-icon {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -292,25 +272,17 @@
             flex-shrink: 0;
         }
 
-        .status-item .stat-icon.green {
+        .stat-icon.green {
             background: #E8F8F5;
             color: #1ABC9C;
         }
-        .status-item .stat-icon.orange {
-            background: #FEF5E7;
-            color: #F39C12;
-        }
-        .status-item .stat-icon.purple {
+        .stat-icon.purple {
             background: #F4ECF7;
             color: #8E44AD;
         }
-        .status-item .stat-icon.blue {
+        .stat-icon.blue {
             background: #EBF5FB;
             color: #3498DB;
-        }
-        .status-item .stat-icon.pink {
-            background: #FDEDEC;
-            color: #E74C3C;
         }
 
         .status-item .stat-info {
@@ -322,7 +294,7 @@
             font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             color: var(--gray);
         }
 
@@ -335,19 +307,19 @@
             text-overflow: ellipsis;
         }
 
-        .status-item .stat-value .highlight {
-            color: var(--teal);
+        .stat-value .highlight {
+            color: var(--secondary);
         }
 
-        /* ===== MAP ===== */
+        /* ----- PETA ----- */
         .map-wrapper {
             background: var(--white);
             border-radius: var(--radius);
             overflow: hidden;
             box-shadow: var(--shadow);
             margin-bottom: 16px;
-            position: relative;
             height: 340px;
+            position: relative;
             border: 2px solid rgba(78, 205, 196, 0.15);
         }
 
@@ -358,28 +330,28 @@
 
         .map-overlay {
             position: absolute;
-            top: 12px;
-            left: 12px;
+            top: 14px;
+            left: 14px;
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
-            padding: 6px 14px;
+            padding: 6px 16px;
             border-radius: 30px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--gray);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            pointer-events: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            pointer-events: none;
         }
 
         .map-overlay .dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             background: #2ECC71;
-            animation: pulse-dot 1.5s infinite;
+            animation: pulse-dot 1.8s infinite;
         }
 
         @keyframes pulse-dot {
@@ -389,12 +361,12 @@
                 transform: scale(1);
             }
             50% {
-                opacity: 0.5;
+                opacity: 0.4;
                 transform: scale(0.7);
             }
         }
 
-        /* ===== LOCATION DETAILS ===== */
+        /* ----- DETAIL LOKASI (Grid) ----- */
         .detail-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -414,11 +386,11 @@
             font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
+            letter-spacing: 0.5px;
             color: var(--gray);
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
 
         .detail-card .value {
@@ -429,26 +401,20 @@
             word-break: break-all;
         }
 
-        .detail-card .value .small {
-            font-size: 12px;
-            font-weight: 400;
-            color: var(--gray);
-        }
-
         .detail-card.accent-coral {
             border-left: 4px solid var(--coral);
         }
         .detail-card.accent-teal {
-            border-left: 4px solid var(--teal);
+            border-left: 4px solid var(--secondary);
         }
         .detail-card.accent-sunny {
-            border-left: 4px solid var(--sunny);
+            border-left: 4px solid var(--accent);
         }
         .detail-card.accent-purple {
-            border-left: 4px solid var(--purple);
+            border-left: 4px solid var(--primary);
         }
 
-        /* ===== HISTORY ===== */
+        /* ----- RIWAYAT LOKASI ----- */
         .history-section {
             background: var(--white);
             border-radius: var(--radius);
@@ -459,8 +425,8 @@
 
         .history-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 12px;
         }
 
@@ -473,12 +439,12 @@
         }
 
         .history-header h3 i {
-            color: var(--teal);
+            color: var(--secondary);
         }
 
         .history-header .count {
             background: var(--light-gray);
-            padding: 2px 12px;
+            padding: 2px 14px;
             border-radius: 30px;
             font-size: 12px;
             font-weight: 600;
@@ -486,7 +452,7 @@
         }
 
         .history-list {
-            max-height: 180px;
+            max-height: 200px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -495,14 +461,14 @@
 
         .history-item {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 10px 12px;
+            align-items: center;
+            padding: 10px 14px;
             background: #FAFAFA;
             border-radius: 12px;
             font-size: 13px;
+            border-left: 3px solid var(--secondary);
             transition: var(--transition);
-            border-left: 3px solid var(--teal);
         }
 
         .history-item .h-time {
@@ -517,38 +483,38 @@
         }
 
         .history-item .h-status {
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .history-empty {
             text-align: center;
-            padding: 24px 0;
+            padding: 28px 0;
             color: var(--gray);
             font-size: 14px;
         }
 
         .history-empty i {
-            font-size: 32px;
+            font-size: 36px;
             display: block;
-            margin-bottom: 8px;
-            opacity: 0.4;
+            margin-bottom: 10px;
+            opacity: 0.3;
         }
 
-        /* ===== CONTROLS ===== */
+        /* ----- TOMBOL KONTROL ----- */
         .controls {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
-            margin-top: 4px;
+            margin-top: 6px;
         }
 
         .controls .btn {
             flex: 1;
-            min-width: 120px;
+            min-width: 100px;
             padding: 14px 20px;
             border: none;
-            border-radius: 30px;
-            font-family: 'Quicksand', sans-serif;
+            border-radius: 40px;
+            font-family: var(--font);
             font-weight: 700;
             font-size: 15px;
             display: flex;
@@ -557,80 +523,113 @@
             gap: 10px;
             cursor: pointer;
             transition: var(--transition);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
         }
 
         .controls .btn:active {
-            transform: scale(0.96);
+            transform: scale(0.95);
         }
 
-        .controls .btn-primary {
-            background: linear-gradient(135deg, var(--teal), #45B7AA);
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary), #45B7AA);
             color: var(--white);
-            box-shadow: 0 4px 16px rgba(78, 205, 196, 0.35);
+            box-shadow: 0 4px 20px rgba(78, 205, 196, 0.35);
         }
 
-        .controls .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(78, 205, 196, 0.45);
+            box-shadow: 0 8px 30px rgba(78, 205, 196, 0.45);
         }
 
-        .controls .btn-primary:disabled {
+        .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
-        .controls .btn-danger {
+        .btn-danger {
             background: linear-gradient(135deg, var(--coral), #E74C3C);
             color: var(--white);
-            box-shadow: 0 4px 16px rgba(255, 107, 107, 0.35);
+            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.35);
         }
 
-        .controls .btn-danger:hover {
+        .btn-danger:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(255, 107, 107, 0.45);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.45);
         }
 
-        .controls .btn-outline {
+        .btn-danger:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
             background: var(--white);
             color: var(--dark);
             border: 2px solid var(--light-gray);
         }
 
-        .controls .btn-outline:hover {
-            border-color: var(--teal);
+        .btn-outline:hover {
+            border-color: var(--secondary);
             background: #F8FFFE;
         }
 
-        /* ===== FOOTER ===== */
+        /* ----- PANEL INFORMASI (Petunjuk) ----- */
+        .info-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            margin-top: 18px;
+            font-size: 13px;
+            color: var(--gray);
+            border: 1px solid rgba(78, 205, 196, 0.15);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 16px;
+        }
+
+        .info-panel i {
+            color: var(--secondary);
+            font-size: 18px;
+            margin-right: 4px;
+        }
+
+        .info-panel .step {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ----- FOOTER ----- */
         .app-footer {
             text-align: center;
-            padding: 20px 0 8px;
+            padding: 20px 0 6px;
             font-size: 12px;
             color: var(--gray);
-            opacity: 0.7;
+            opacity: 0.6;
         }
 
         .app-footer i {
             color: var(--coral);
         }
 
-        /* ===== TOAST ===== */
+        /* ----- TOAST NOTIFICATION ----- */
         .toast {
             position: fixed;
-            bottom: 90px;
+            bottom: 100px;
             left: 50%;
-            transform: translateX(-50%) translateY(20px);
+            transform: translateX(-50%) translateY(30px);
             background: var(--dark);
             color: var(--white);
-            padding: 12px 24px;
-            border-radius: 30px;
+            padding: 14px 28px;
+            border-radius: 40px;
             font-weight: 600;
             font-size: 14px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.20);
             opacity: 0;
-            transition: var(--transition);
+            transition: all 0.4s ease;
             pointer-events: none;
             z-index: 999;
             max-width: 90%;
@@ -651,67 +650,70 @@
         .toast.warning {
             background: #F39C12;
         }
+        .toast.info {
+            background: #3498DB;
+        }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 420px) {
+        /* ----- RESPONSIVE ----- */
+        @media (max-width: 440px) {
             body {
-                padding: 10px;
-                padding-bottom: 80px;
+                padding: 10px 8px 80px;
             }
-
             .header-title {
-                font-size: 18px;
+                font-size: 20px;
             }
             .header-badge {
-                font-size: 9px;
+                font-size: 10px;
                 padding: 3px 10px;
             }
             .input-card {
-                padding: 14px 16px;
-                flex-wrap: wrap;
+                padding: 12px 14px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .input-card .icon-wrap {
+                width: 44px;
+                height: 44px;
+                align-self: center;
             }
             .input-card input {
-                font-size: 14px;
-                min-width: 120px;
+                min-width: unset;
+                text-align: center;
             }
             .input-card .btn-track {
-                font-size: 13px;
-                padding: 8px 16px;
+                justify-content: center;
                 width: 100%;
             }
-            .detail-grid {
+            .status-grid {
                 grid-template-columns: 1fr 1fr;
-                gap: 8px;
             }
-            .detail-card .value {
-                font-size: 13px;
+            .status-item:last-child {
+                grid-column: span 2;
             }
-            .status-item {
-                min-width: 70px;
-                padding: 10px 12px;
-            }
-            .status-item .stat-value {
-                font-size: 12px;
+            .detail-grid {
+                grid-template-columns: 1fr;
             }
             .map-wrapper {
                 height: 260px;
             }
             .controls .btn {
-                font-size: 13px;
+                font-size: 14px;
                 padding: 12px 16px;
                 min-width: 80px;
+            }
+            .info-panel {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
             }
         }
 
         @media (max-width: 360px) {
-            .detail-grid {
+            .status-grid {
                 grid-template-columns: 1fr;
             }
-            .status-bar {
-                flex-direction: column;
-            }
-            .status-item {
-                min-width: unset;
+            .status-item:last-child {
+                grid-column: span 1;
             }
             .controls {
                 flex-direction: column;
@@ -721,39 +723,40 @@
             }
         }
 
-        /* ===== ANIMATIONS ===== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
+        /* ===== ANIMASI MASUK ===== */
+        .animate-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeUp {
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        .animate-in {
-            animation: fadeInUp 0.5s ease forwards;
-        }
-
         .delay-1 {
             animation-delay: 0.05s;
         }
         .delay-2 {
-            animation-delay: 0.1s;
+            animation-delay: 0.10s;
         }
         .delay-3 {
             animation-delay: 0.15s;
         }
         .delay-4 {
-            animation-delay: 0.2s;
+            animation-delay: 0.20s;
         }
         .delay-5 {
             animation-delay: 0.25s;
         }
+        .delay-6 {
+            animation-delay: 0.30s;
+        }
 
-        /* ===== LOADING SPINNER ===== */
+        /* ===== SPINNER ===== */
         .spinner {
             display: inline-block;
             width: 18px;
@@ -769,18 +772,11 @@
                 transform: rotate(360deg);
             }
         }
-
-        /* ===== RESPONSIVE MAP HEIGHT ===== */
-        @media (orientation: landscape) and (max-height: 500px) {
-            .map-wrapper {
-                height: 200px;
-            }
-        }
     </style>
 </head>
 
 <body>
-    <div id="app">
+    <div class="app-container">
 
         <!-- ===== HEADER ===== -->
         <header class="app-header animate-in">
@@ -789,14 +785,14 @@
                     <span class="header-icon">👶</span>
                     <h1 class="header-title">Safe<span>Track</span></h1>
                 </div>
-                <span class="header-badge"><i class="fas fa-shield-alt"></i> &nbsp;Aman</span>
+                <span class="header-badge"><i class="fas fa-shield-alt"></i> Aman</span>
             </div>
             <div class="header-sub">
                 <i class="fas fa-map-pin"></i> Pantau lokasi anak Anda secara real-time
             </div>
         </header>
 
-        <!-- ===== PHONE INPUT ===== -->
+        <!-- ===== INPUT NOMOR ===== -->
         <div class="input-card animate-in delay-1">
             <div class="icon-wrap">
                 <i class="fas fa-phone-alt"></i>
@@ -807,8 +803,8 @@
             </button>
         </div>
 
-        <!-- ===== STATUS BAR ===== -->
-        <div class="status-bar animate-in delay-2">
+        <!-- ===== STATUS GRID ===== -->
+        <div class="status-grid animate-in delay-2">
             <div class="status-item">
                 <div class="stat-icon green"><i class="fas fa-wifi"></i></div>
                 <div class="stat-info">
@@ -834,7 +830,7 @@
             </div>
         </div>
 
-        <!-- ===== MAP ===== -->
+        <!-- ===== PETA ===== -->
         <div class="map-wrapper animate-in delay-3">
             <div id="map"></div>
             <div class="map-overlay">
@@ -843,7 +839,7 @@
             </div>
         </div>
 
-        <!-- ===== LOCATION DETAILS ===== -->
+        <!-- ===== DETAIL LOKASI ===== -->
         <div class="detail-grid animate-in delay-4">
             <div class="detail-card accent-coral">
                 <div class="label"><i class="fas fa-arrow-up"></i> Latitude</div>
@@ -863,7 +859,7 @@
             </div>
         </div>
 
-        <!-- ===== HISTORY ===== -->
+        <!-- ===== RIWAYAT ===== -->
         <div class="history-section animate-in delay-5">
             <div class="history-header">
                 <h3><i class="fas fa-history"></i> Riwayat Lokasi</h3>
@@ -877,8 +873,8 @@
             </div>
         </div>
 
-        <!-- ===== CONTROLS ===== -->
-        <div class="controls animate-in delay-5">
+        <!-- ===== KONTROL ===== -->
+        <div class="controls animate-in delay-6">
             <button class="btn btn-primary" id="startBtn">
                 <i class="fas fa-play"></i> Mulai Pantau
             </button>
@@ -890,24 +886,32 @@
             </button>
         </div>
 
+        <!-- ===== PANEL PETUNJUK ===== -->
+        <div class="info-panel animate-in delay-6">
+            <span><i class="fas fa-lightbulb"></i> <strong>Panduan:</strong></span>
+            <span class="step"><i class="fas fa-1"></i> Masukkan nomor HP</span>
+            <span class="step"><i class="fas fa-2"></i> Tekan <strong>Lacak</strong></span>
+            <span class="step"><i class="fas fa-3"></i> Izinkan akses lokasi</span>
+            <span class="step"><i class="fas fa-4"></i> Pantau pergerakan</span>
+        </div>
+
         <!-- ===== FOOTER ===== -->
         <div class="app-footer">
             <i class="fas fa-heart"></i> SafeTrack &bull; Lindungi buah hati Anda
         </div>
-
-        <!-- ===== TOAST ===== -->
-        <div class="toast" id="toast"></div>
     </div>
 
-    <script>
-        // ================================================================
-        //  SAFETRACK — FULL APPLICATION LOGIC
-        // ================================================================
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
 
+    <!-- ================================================================ -->
+    <!--  JAVASCRIPT – LOGIKA APLIKASI                                   -->
+    <!-- ================================================================ -->
+    <script>
         (function() {
             'use strict';
 
-            // ---- DOM refs ----
+            // ---------- DOM REFS ----------
             const phoneInput = document.getElementById('phoneInput');
             const trackBtn = document.getElementById('trackBtn');
             const startBtn = document.getElementById('startBtn');
@@ -925,7 +929,7 @@
             const mapStatus = document.getElementById('mapStatus');
             const toast = document.getElementById('toast');
 
-            // ---- State ----
+            // ---------- STATE ----------
             let watchId = null;
             let isTracking = false;
             let history = [];
@@ -935,18 +939,20 @@
             let circle = null;
             let lastPhoneNumber = '';
 
-            // ---- Mock data (simulasi provider & IMEI) ----
+            // ---------- MOCK DATA (Simulasi Provider & IMEI) ----------
             const PROVIDERS = ['Telkomsel', 'Indosat', 'XL Axiata', 'Smartfren', 'Three', 'By.U'];
-            const IMEI_PREFIX = '35' + String(Math.floor(Math.random() * 1000000000000)).padStart(12, '0');
 
+            function getRandomProvider() {
+                return PROVIDERS[Math.floor(Math.random() * PROVIDERS.length)];
+            }
+
+            // Generate IMEI yang valid (15 digit) dengan Luhn check digit
             function generateIMEI() {
-                // Generate IMEI yang konsisten per sesi
-                const base = '35' + String(Math.floor(Math.random() * 1000000000000)).padStart(12, '0');
-                // Luhn check digit (sederhana)
+                const prefix = '35' + String(Math.floor(Math.random() * 1000000000000)).padStart(12, '0');
                 let sum = 0;
                 let alternate = true;
-                for (let i = base.length - 1; i >= 0; i--) {
-                    let n = parseInt(base[i], 10);
+                for (let i = prefix.length - 1; i >= 0; i--) {
+                    let n = parseInt(prefix[i], 10);
                     if (alternate) {
                         n *= 2;
                         if (n > 9) n -= 9;
@@ -955,16 +961,12 @@
                     alternate = !alternate;
                 }
                 const check = (10 - (sum % 10)) % 10;
-                return base + check;
+                return prefix + check;
             }
 
             const mockIMEI = generateIMEI();
 
-            function getRandomProvider() {
-                return PROVIDERS[Math.floor(Math.random() * PROVIDERS.length)];
-            }
-
-            // ---- Toast ----
+            // ---------- TOAST ----------
             let toastTimer = null;
 
             function showToast(message, type = 'info', duration = 3000) {
@@ -977,30 +979,24 @@
                 if (type === 'success') toast.classList.add('success');
                 else if (type === 'error') toast.classList.add('error');
                 else if (type === 'warning') toast.classList.add('warning');
-                // force reflow
-                void toast.offsetWidth;
+                else toast.classList.add('info');
+
+                void toast.offsetWidth; // reflow
                 toast.classList.add('show');
                 toastTimer = setTimeout(() => {
                     toast.classList.remove('show');
                 }, duration);
             }
 
-            // ---- Format waktu ----
-            function formatTime(ts) {
-                const d = new Date(ts);
-                return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            }
-
-            function formatDate(ts) {
-                const d = new Date(ts);
-                return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-            }
-
+            // ---------- FORMAT WAKTU ----------
             function formatFullTime(ts) {
-                return formatDate(ts) + ' ' + formatTime(ts);
+                const d = new Date(ts);
+                const date = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                const time = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                return `${date} ${time}`;
             }
 
-            // ---- Update UI dengan posisi ----
+            // ---------- UPDATE UI DENGAN POSISI ----------
             function updatePositionUI(pos) {
                 if (!pos) return;
                 const { latitude, longitude, accuracy } = pos.coords;
@@ -1013,7 +1009,7 @@
                 accDisplay.textContent = accuracy ? accuracy.toFixed(0) + ' m' : '—';
                 timeDisplay.textContent = formatFullTime(timestamp);
 
-                // Update map
+                // Update peta
                 if (map && marker) {
                     const latlng = [latitude, longitude];
                     marker.setLatLng(latlng);
@@ -1021,36 +1017,40 @@
                         circle.setLatLng(latlng);
                         if (accuracy) {
                             circle.setRadius(accuracy);
+                        } else {
+                            circle.setRadius(50);
                         }
                     }
                     map.setView(latlng, 16, { animate: true });
                 }
 
-                // Status
                 statusDisplay.innerHTML = `<span class="highlight">● Terpantau</span>`;
                 mapStatus.textContent = 'Lokasi terkini';
 
-                // Tambah ke history
+                // Tambah ke riwayat
                 addHistory(latitude, longitude, accuracy, timestamp);
             }
 
-            // ---- History ----
+            // ---------- RIWAYAT ----------
             function addHistory(lat, lng, acc, ts) {
                 const entry = {
-                    lat: lat,
-                    lng: lng,
-                    acc: acc,
+                    lat,
+                    lng,
+                    acc,
                     time: ts,
                     formatted: formatFullTime(ts)
                 };
                 history.push(entry);
-                if (history.length > 50) history.shift(); // batasi 50
+                if (history.length > 50) history.shift(); // batas 50
                 renderHistory();
+                // Simpan ke localStorage
+                try {
+                    localStorage.setItem('safetrack_history', JSON.stringify(history));
+                } catch (_) { /* abaikan */ }
             }
 
             function renderHistory() {
                 historyCount.textContent = history.length;
-
                 if (history.length === 0) {
                     historyList.innerHTML = `
                         <div class="history-empty">
@@ -1060,12 +1060,10 @@
                     `;
                     return;
                 }
-
                 let html = '';
-                // tampilkan terbaru di atas
                 const reversed = [...history].reverse();
                 for (const item of reversed) {
-                    const statusIcon = item.acc && item.acc < 50 ? '✅' : '📍';
+                    const statusIcon = (item.acc && item.acc < 50) ? '✅' : '📍';
                     html += `
                         <div class="history-item">
                             <span class="h-time">${item.formatted}</span>
@@ -1077,7 +1075,21 @@
                 historyList.innerHTML = html;
             }
 
-            // ---- Geolocation ----
+            // Muat riwayat dari localStorage
+            function loadHistory() {
+                try {
+                    const stored = localStorage.getItem('safetrack_history');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            history = parsed;
+                            renderHistory();
+                        }
+                    }
+                } catch (_) { /* abaikan */ }
+            }
+
+            // ---------- GEOLOKASI ----------
             function startTracking() {
                 if (isTracking) return;
 
@@ -1101,19 +1113,18 @@
                 };
 
                 watchId = navigator.geolocation.watchPosition(
-                    // success
+                    // Success
                     (pos) => {
                         updatePositionUI(pos);
                         if (!isTracking) {
                             isTracking = true;
                             updateButtons();
                             showToast('✅ Pelacakan real-time aktif!', 'success');
-                            // Simpan nomor jika ada
                             const phone = phoneInput.value.trim();
                             if (phone) lastPhoneNumber = phone;
                         }
                     },
-                    // error
+                    // Error
                     (err) => {
                         console.error('Geolocation error:', err);
                         let msg = '❌ Gagal mengakses lokasi. ';
@@ -1138,10 +1149,10 @@
                     geoOptions
                 );
 
-                // timeout fallback jika watchPosition tidak merespon
+                // Fallback timeout
                 setTimeout(() => {
                     if (!isTracking && watchId !== null) {
-                        // masih mencoba
+                        // masih menunggu
                     }
                 }, 3000);
             }
@@ -1161,11 +1172,11 @@
             function refreshLocation() {
                 if (isTracking) {
                     showToast('🔄 Memperbarui lokasi...', 'info', 1000);
-                    // force refresh dengan restart watch
+                    // restart watch untuk refresh cepat
                     stopTracking();
                     setTimeout(() => {
                         startTracking();
-                    }, 300);
+                    }, 400);
                 } else {
                     showToast('⚠️ Mulai pelacakan terlebih dahulu.', 'warning');
                 }
@@ -1185,7 +1196,7 @@
                 }
             }
 
-            // ---- Inisialisasi Map ----
+            // ---------- INISIALISASI PETA ----------
             function initMap() {
                 const mapContainer = document.getElementById('map');
                 const defaultCenter = [-6.2088, 106.8456]; // Jakarta
@@ -1202,24 +1213,21 @@
                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
                 }).addTo(map);
 
-                // Zoom control di kanan bawah
-                L.control.zoom({
-                    position: 'bottomright'
-                }).addTo(map);
+                L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-                // Marker custom dengan emoji
+                // Marker custom dengan ikon anak
                 const iconHtml = `
                     <div style="
                         background: #4ECDC4;
-                        width: 42px;
-                        height: 42px;
+                        width: 44px;
+                        height: 44px;
                         border-radius: 50%;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 22px;
+                        font-size: 24px;
                         border: 3px solid white;
-                        box-shadow: 0 4px 16px rgba(78,205,196,0.5);
+                        box-shadow: 0 4px 20px rgba(78,205,196,0.5);
                         transform: translate(-50%, -50%);
                     ">
                         👶
@@ -1228,16 +1236,11 @@
                 const customIcon = L.divIcon({
                     html: iconHtml,
                     className: '',
-                    iconSize: [42, 42],
-                    iconAnchor: [21, 21]
+                    iconSize: [44, 44],
+                    iconAnchor: [22, 22]
                 });
 
-                marker = L.marker(defaultCenter, {
-                    icon: customIcon,
-                    draggable: false
-                }).addTo(map);
-
-                // Circle akurasi
+                marker = L.marker(defaultCenter, { icon: customIcon, draggable: false }).addTo(map);
                 circle = L.circle(defaultCenter, {
                     radius: 50,
                     color: '#4ECDC4',
@@ -1247,15 +1250,13 @@
                     opacity: 0.7
                 }).addTo(map);
 
-                // Klik map untuk info
+                // Klik pada peta tampilkan koordinat
                 map.on('click', function(e) {
                     showToast(`📍 ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`, 'info', 2000);
                 });
 
-                // Resize handler
-                setTimeout(() => {
-                    map.invalidateSize();
-                }, 400);
+                // Resize peta setelah render
+                setTimeout(() => map.invalidateSize(), 500);
 
                 // Coba dapatkan posisi awal
                 if (navigator.geolocation) {
@@ -1270,20 +1271,19 @@
                                 circle.setRadius(pos.coords.accuracy);
                             }
                             updatePositionUI(pos);
-                            // set provider & IMEI awal
                             providerDisplay.textContent = getRandomProvider();
                             imeiDisplay.textContent = mockIMEI;
                             statusDisplay.innerHTML = `<span class="highlight">● Siap</span>`;
                         },
                         () => {
-                            // fallback ke default
-                            showToast('📍 Gunakan default Jakarta. Aktifkan GPS untuk akurasi.', 'warning', 3000);
+                            showToast('📍 Menggunakan lokasi default (Jakarta). Aktifkan GPS untuk akurasi.', 'warning',
+                            3000);
                         }, { enableHighAccuracy: true, timeout: 8000 }
                     );
                 }
             }
 
-            // ---- Event Handlers ----
+            // ---------- EVENT LISTENER ----------
             trackBtn.addEventListener('click', function() {
                 const phone = phoneInput.value.trim();
                 if (!phone) {
@@ -1298,15 +1298,12 @@
                 lastPhoneNumber = phone;
                 showToast(`🔍 Melacak nomor ${phone}...`, 'info', 1500);
 
-                // Simulasi "menghubungkan ke provider"
                 providerDisplay.textContent = getRandomProvider();
                 imeiDisplay.textContent = mockIMEI;
 
-                // Jika belum tracking, mulai
                 if (!isTracking) {
                     startTracking();
                 } else {
-                    // refresh
                     refreshLocation();
                 }
             });
@@ -1315,34 +1312,28 @@
             stopBtn.addEventListener('click', stopTracking);
             refreshBtn.addEventListener('click', refreshLocation);
 
-            // Enter key pada input
             phoneInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    trackBtn.click();
-                }
+                if (e.key === 'Enter') trackBtn.click();
             });
 
-            // ---- Inisialisasi ----
+            // ---------- INISIALISASI ----------
             function init() {
+                loadHistory();
                 initMap();
                 updateButtons();
-                // Cek dukungan geolokasi
-                if (!navigator.geolocation) {
-                    showToast('❌ Browser tidak mendukung GPS. Gunakan Chrome/Android.', 'error', 4000);
-                    statusDisplay.innerHTML = `<span style="color:var(--coral);">● Tidak didukung</span>`;
-                }
 
                 // Set default IMEI & provider
                 imeiDisplay.textContent = mockIMEI;
                 providerDisplay.textContent = getRandomProvider();
 
-                // Auto-track jika ada izin (opsional)
-                // Biarkan user menekan tombol mulai
+                if (!navigator.geolocation) {
+                    showToast('❌ Browser tidak mendukung GPS. Gunakan Chrome/Android.', 'error', 4000);
+                    statusDisplay.innerHTML = `<span style="color:var(--coral);">● Tidak didukung</span>`;
+                }
 
                 console.log('👶 SafeTrack initialized. IMEI:', mockIMEI);
             }
 
-            // ---- Run ----
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
@@ -1351,6 +1342,5 @@
 
         })();
     </script>
-
 </body>
 </html>
