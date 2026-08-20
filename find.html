@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#4ECDC4" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>SafeTrack - Perlindungan & Pantau Lokasi Anak</title>
+
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #4ECDC4;
+            --primary-dark: #45B7AA;
+            --accent: #FF6B6B;
+            --dark: #2D3436;
+            --gray: #636E72;
+            --bg: #F4F7F6;
+            --white: #FFFFFF;
+            --radius: 20px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: 0.3s ease;
+        }
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: var(--bg);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 16px;
+            padding-bottom: 100px;
+            -webkit-font-smoothing: antialiased;
+        }
+        #app { max-width: 480px; margin: 0 auto; position: relative; }
+
+        /* ===== HEADER ===== */
+        .app-header {
+            background: linear-gradient(135deg, #2D3436, #1A1E20);
+            padding: 24px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            color: var(--white);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title { font-size: 24px; font-weight: 700; }
+        .header-title span { color: var(--primary); }
+        .header-sub { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+        .btn-info {
+            background: rgba(255,255,255,0.1);
+            border: none; color: white;
+            width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        /* ===== INPUT SECTION ===== */
+        .input-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            border: 2px solid transparent;
+            transition: var(--transition);
+        }
+        .input-card:focus-within { border-color: var(--primary); }
+        .input-card input {
+            flex: 1; border: none; outline: none;
+            font-family: inherit; font-size: 16px; font-weight: 600;
+            background: #F8F9FA; border-radius: 12px; padding: 0 16px;
+        }
+        .btn-action {
+            background: var(--primary);
+            color: white; border: none;
+            padding: 14px 24px; border-radius: 12px;
+            font-weight: 700; font-family: inherit;
+            cursor: pointer; transition: var(--transition);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-action:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-action:disabled { background: var(--gray); cursor: not-allowed; transform: none; }
+
+        /* ===== MODAL TUTORIAL ===== */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000; justify-content: center; align-items: center;
+            padding: 20px; backdrop-filter: blur(4px);
+        }
+        .modal.active { display: flex; animation: fadeIn 0.3s; }
+        .modal-content {
+            background: white; border-radius: var(--radius);
+            padding: 24px; max-width: 400px; width: 100%;
+            text-align: center;
+        }
+        .modal-content h3 { color: var(--dark); margin-bottom: 16px; }
+        .modal-content p { font-size: 14px; color: var(--gray); margin-bottom: 12px; text-align: left;}
+        .modal-content ul { text-align: left; font-size: 14px; color: var(--gray); margin-bottom: 20px; padding-left: 20px;}
+        .modal-close {
+            background: var(--primary); width: 100%;
+            padding: 12px; border-radius: 12px; color: white;
+            border: none; font-weight: bold; cursor: pointer;
+        }
+
+        /* ===== MAP ===== */
+        .map-wrapper {
+            background: var(--white);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            height: 380px;
+            position: relative;
+            display: none; /* Hidden until tracked */
+        }
+        .map-wrapper.active { display: block; animation: slideUp 0.5s ease; }
+        #map { width: 100%; height: 100%; }
+        
+        .overlay-status {
+            position: absolute; top: 16px; left: 16px;
+            background: rgba(255,255,255,0.9);
+            padding: 8px 16px; border-radius: 20px;
+            font-size: 12px; font-weight: 700;
+            box-shadow: var(--shadow); z-index: 400;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .pulse {
+            width: 10px; height: 10px; background: #2ECC71;
+            border-radius: 50%; animation: blink 1.5s infinite;
+        }
+
+        /* ===== DATA CARDS ===== */
+        .data-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 12px; margin-bottom: 20px; display: none;
+        }
+        .data-grid.active { display: grid; animation: slideUp 0.6s ease; }
+        .data-card {
+            background: white; padding: 16px;
+            border-radius: 16px; box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+        }
+        .data-label { font-size: 11px; color: var(--gray); font-weight: bold; text-transform: uppercase;}
+        .data-value { font-size: 14px; font-weight: 700; margin-top: 4px; color: var(--dark); word-break: break-all;}
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--dark); color: white;
+            padding: 12px 24px; border-radius: 30px;
+            font-size: 14px; font-weight: 600;
+            opacity: 0; transition: 0.3s; pointer-events: none;
+            z-index: 1000; text-align: center; width: 90%; max-width: 350px;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--accent); }
+
+        /* ANIMATIONS */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        
+        .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div>
+                <h1 class="header-title">Safe<span>Track</span></h1>
+                <div class="header-sub">Sistem Pantau Anak Cerdas</div>
+            </div>
+            <button class="btn-info" onclick="toggleModal()"><i class="fas fa-question"></i></button>
+        </header>
+
+        <!-- Input Area -->
+        <div class="input-card">
+            <input type="tel" id="phoneInput" placeholder="Contoh: 081234567890" maxlength="15" />
+            <button class="btn-action" id="trackBtn" onclick="initiateTracking()">
+                <i class="fas fa-search"></i> Lacak
+            </button>
+        </div>
+
+        <!-- Map Area -->
+        <div class="map-wrapper" id="mapSection">
+            <div class="overlay-status">
+                <div class="pulse"></div> Terhubung
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <!-- Data Area -->
+        <div class="data-grid" id="dataSection">
+            <div class="data-card">
+                <div class="data-label">Status Perangkat</div>
+                <div class="data-value" style="color: #2ECC71;">Aktif & Merespons</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Akurasi GPS</div>
+                <div class="data-value" id="accDisplay">-</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Latitude</div>
+                <div class="data-value" id="latDisplay">-</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Longitude</div>
+                <div class="data-value" id="lngDisplay">-</div>
+            </div>
+        </div>
+        
+        <p style="text-align: center; color: #a0a0a0; font-size: 12px; margin-top: 30px;">
+            Prototipe UI/UX &bull; Data Terenkripsi
+        </p>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+
+        <!-- Modal Bantuan -->
+        <div class="modal" id="infoModal">
+            <div class="modal-content">
+                <h3><i class="fas fa-shield-alt" style="color: var(--primary);"></i> Cara Kerja SafeTrack</h3>
+                <p>Aplikasi ini dirancang untuk masyarakat awam demi memastikan keamanan buah hati Anda.</p>
+                <ul>
+                    <li>Pastikan aplikasi pendamping sudah terinstal di HP Anak.</li>
+                    <li>HP Anak harus terhubung ke Internet dan GPS menyala.</li>
+                    <li>Masukkan nomor HP Anak pada kolom yang disediakan lalu tekan "Lacak".</li>
+                </ul>
+                <button class="modal-close" onclick="toggleModal()">Mengerti</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let map = null;
+        let marker = null;
+        let trackingInterval = null;
+
+        function toggleModal() {
+            const modal = document.getElementById('infoModal');
+            modal.classList.toggle('active');
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function initiateTracking() {
+            const phone = document.getElementById('phoneInput').value;
+            if(phone.length < 10) {
+                showToast('Format nomor tidak valid. Minimal 10 digit.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('trackBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Mencari...';
+
+            // Simulasi proses pencarian perangkat jarak jauh (Proxy Demo)
+            setTimeout(() => {
+                showToast('Membangun koneksi aman ke server...', 'info');
+                
+                setTimeout(() => {
+                    startLocalGPSProxy(); 
+                }, 1500);
+            }, 1000);
+        }
+
+        // Fungsi ini menggunakan GPS lokal BUKAN remote, berfungsi murni sebagai DEMO UI/UX
+        function startLocalGPSProxy() {
+            if (!navigator.geolocation) {
+                showToast('Perangkat ini tidak mendukung pemetaan.', 'error');
+                resetButton();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    document.getElementById('mapSection').classList.add('active');
+                    document.getElementById('dataSection').classList.add('active');
+                    
+                    showToast('Perangkat target ditemukan!', 'info');
+                    resetButton();
+                    document.getElementById('trackBtn').innerHTML = '<i class="fas fa-sync"></i> Perbarui';
+                    
+                    renderMap(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
+                },
+                (err) => {
+                    showToast('Gagal melacak. Pastikan izin lokasi aktif.', 'error');
+                    resetButton();
+                },
+                { enableHighAccuracy: true }
+            );
+        }
+
+        function resetButton() {
+            const btn = document.getElementById('trackBtn');
+            btn.disabled = false;
+        }
+
+        function renderMap(lat, lng, acc) {
+            document.getElementById('latDisplay').textContent = lat.toFixed(6);
+            document.getElementById('lngDisplay').textContent = lng.toFixed(6);
+            document.getElementById('accDisplay').textContent = `Radius ${Math.round(acc)} meter`;
+
+            if (!map) {
+                map = L.map('map').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+
+                // Custom Icon untuk Anak
+                const childIcon = L.divIcon({
+                    html: `<div style="background:var(--accent);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;border:3px solid white;box-shadow:0 4px 10px rgba(0,0,0,0.3);"><i class="fas fa-child"></i></div>`,
+                    className: '', iconSize: [36, 36], iconAnchor: [18, 18]
+                });
+
+                marker = L.marker([lat, lng], {icon: childIcon}).addTo(map);
+                L.circle([lat, lng], { radius: acc, color: '#4ECDC4', fillOpacity: 0.2 }).addTo(map);
+            } else {
+                map.setView([lat, lng], 15);
+                marker.setLatLng([lat, lng]);
+            }
+
+            // Fix map rendering issue on display toggle
+            setTimeout(() => map.invalidateSize(), 300);
+        }
+    </script>
+</body>
+</html>
