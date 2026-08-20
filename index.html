@@ -3,97 +3,120 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>👶 SafeTrack – Pantau Lokasi Anak</title>
+    <title>👶 SafeTrack - Pantau Lokasi Anak</title>
 
-    <!-- Leaflet CSS & JS (peta) -->
+    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
     </script>
 
-    <!-- Google Font (Quicksand) -->
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
 
-    <!-- Font Awesome 6 (Ikon) -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <style>
-        /* ----- RESET & VARIABEL ----- */
-        * {
+        /* ===== RESET & BASE ===== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         :root {
-            --primary: #6C5CE7;
-            --secondary: #4ECDC4;
-            --accent: #FFE66D;
             --coral: #FF6B6B;
+            --teal: #4ECDC4;
+            --sunny: #FFE66D;
+            --mint: #A8E6CF;
+            --peach: #FF8A5C;
+            --purple: #6C5CE7;
             --pink: #FD79A8;
             --sky: #74B9FF;
             --dark: #2D3436;
             --gray: #636E72;
             --light-gray: #DFE6E9;
             --white: #FFFFFF;
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.10);
-            --radius: 28px;
-            --radius-sm: 16px;
-            --transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            --font: 'Quicksand', sans-serif;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+            --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.16);
+            --radius: 24px;
+            --radius-sm: 14px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
         }
 
         body {
-            font-family: var(--font);
-            background: linear-gradient(160deg, #FFF9F0 0%, #F4F0FF 100%);
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(145deg, #FFF9F0 0%, #F8F0FF 100%);
             min-height: 100vh;
-            padding: 16px 12px 90px;
+            padding: 14px;
+            padding-bottom: 90px;
             color: var(--dark);
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ----- APP CONTAINER ----- */
-        .app-container {
-            max-width: 480px;
-            margin: 0 auto;
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--teal);
+            border-radius: 10px;
         }
 
-        /* ----- HEADER ----- */
+        /* ===== APP CONTAINER ===== */
+        #app {
+            max-width: 480px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* ===== HEADER ===== */
         .app-header {
-            background: linear-gradient(135deg, var(--primary), var(--pink));
-            padding: 20px 24px 18px;
+            background: linear-gradient(135deg, var(--purple), var(--pink));
+            padding: 18px 22px 16px;
             border-radius: var(--radius);
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
-            color: var(--white);
         }
 
         .app-header::before {
-            content: '🌟';
+            content: '✨';
             position: absolute;
-            top: -20px;
-            right: -10px;
-            font-size: 80px;
-            opacity: 0.15;
-            transform: rotate(20deg);
+            top: -14px;
+            right: -8px;
+            font-size: 72px;
+            opacity: 0.13;
+            transform: rotate(18deg);
         }
 
         .app-header::after {
-            content: '✨';
+            content: '🌟';
             position: absolute;
-            bottom: -30px;
-            left: -10px;
-            font-size: 100px;
-            opacity: 0.10;
+            bottom: -18px;
+            left: -8px;
+            font-size: 56px;
+            opacity: 0.11;
         }
 
         .header-top {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            position: relative;
-            z-index: 2;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .header-left {
@@ -103,8 +126,9 @@
         }
 
         .header-icon {
-            font-size: 34px;
+            font-size: 30px;
             animation: bounce 2s infinite;
+            line-height: 1;
         }
 
         @keyframes bounce {
@@ -113,14 +137,15 @@
                 transform: translateY(0);
             }
             50% {
-                transform: translateY(-6px);
+                transform: translateY(-5px);
             }
         }
 
         .header-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            color: var(--white);
+            letter-spacing: -0.2px;
         }
 
         .header-title span {
@@ -129,160 +154,172 @@
         }
 
         .header-badge {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(6px);
-            padding: 4px 14px;
+            background: rgba(255, 255, 255, 0.20);
+            backdrop-filter: blur(4px);
+            padding: 3px 12px;
             border-radius: 30px;
-            font-size: 11px;
+            color: var(--white);
+            font-size: 10px;
             font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.4px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .header-sub {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-top: 6px;
+            color: rgba(255, 255, 255, 0.92);
+            font-size: 12px;
+            font-weight: 400;
+            margin-top: 5px;
             display: flex;
             align-items: center;
             gap: 8px;
-            position: relative;
-            z-index: 2;
+            flex-wrap: wrap;
         }
 
         .header-sub i {
-            font-size: 13px;
+            font-size: 11px;
+            opacity: 0.8;
         }
 
-        /* ----- KARTU INPUT NOMOR ----- */
+        /* ===== PHONE INPUT CARD ===== */
         .input-card {
             background: var(--white);
             border-radius: var(--radius);
-            padding: 14px 18px;
+            padding: 14px 16px;
             box-shadow: var(--shadow);
-            margin-bottom: 18px;
+            margin-bottom: 14px;
             display: flex;
-            flex-wrap: wrap;
             align-items: center;
-            gap: 12px;
-            border: 2px solid transparent;
+            gap: 10px;
             transition: var(--transition);
+            border: 2px solid transparent;
+            flex-wrap: wrap;
         }
 
         .input-card:focus-within {
-            border-color: var(--secondary);
-            box-shadow: 0 12px 40px rgba(78, 205, 196, 0.20);
+            border-color: var(--teal);
+            box-shadow: var(--shadow-hover);
         }
 
         .input-card .icon-wrap {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--accent), var(--coral));
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--sunny), var(--peach));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
             color: var(--white);
+            font-size: 16px;
             flex-shrink: 0;
         }
 
         .input-card input {
             flex: 1;
-            min-width: 140px;
             border: none;
             outline: none;
-            font-family: var(--font);
-            font-size: 16px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 15px;
             font-weight: 600;
             color: var(--dark);
             background: transparent;
-            padding: 10px 0;
+            padding: 6px 0;
+            min-width: 100px;
         }
 
         .input-card input::placeholder {
             color: var(--gray);
             font-weight: 400;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .input-card .btn-track {
-            background: linear-gradient(135deg, var(--secondary), #45B7AA);
+            background: linear-gradient(135deg, var(--teal), #45B7AA);
             border: none;
             color: var(--white);
-            font-family: var(--font);
+            font-family: 'Quicksand', sans-serif;
             font-weight: 700;
-            font-size: 15px;
-            padding: 12px 24px;
-            border-radius: 40px;
+            font-size: 13px;
+            padding: 8px 18px;
+            border-radius: 30px;
             cursor: pointer;
             transition: var(--transition);
-            box-shadow: 0 4px 16px rgba(78, 205, 196, 0.35);
+            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.30);
             display: flex;
             align-items: center;
-            gap: 8px;
-            white-space: nowrap;
+            gap: 6px;
         }
 
         .input-card .btn-track:hover {
             transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 8px 28px rgba(78, 205, 196, 0.45);
+            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.40);
         }
 
         .input-card .btn-track:active {
-            transform: scale(0.96);
+            transform: scale(0.95);
         }
 
         .input-card .btn-track:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
+            transform: none !important;
         }
 
-        /* ----- STATUS BAR (Provider, IMEI, Status) ----- */
-        .status-grid {
+        /* ===== STATUS BAR ===== */
+        .status-bar {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
         }
 
         .status-item {
             background: var(--white);
             border-radius: var(--radius-sm);
-            padding: 12px 14px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 10px 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             gap: 10px;
             transition: var(--transition);
-            border-left: 4px solid var(--secondary);
+            border-left: 4px solid var(--teal);
         }
 
         .status-item .stat-icon {
-            width: 38px;
-            height: 38px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
             flex-shrink: 0;
         }
 
-        .stat-icon.green {
+        .status-item .stat-icon.green {
             background: #E8F8F5;
             color: #1ABC9C;
         }
-        .stat-icon.purple {
+        .status-item .stat-icon.orange {
+            background: #FEF5E7;
+            color: #F39C12;
+        }
+        .status-item .stat-icon.purple {
             background: #F4ECF7;
             color: #8E44AD;
         }
-        .stat-icon.blue {
+        .status-item .stat-icon.blue {
             background: #EBF5FB;
             color: #3498DB;
+        }
+        .status-item .stat-icon.pink {
+            background: #FDEDEC;
+            color: #E74C3C;
         }
 
         .status-item .stat-info {
@@ -291,7 +328,7 @@
         }
 
         .status-item .stat-label {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.6px;
@@ -299,7 +336,7 @@
         }
 
         .status-item .stat-value {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: var(--dark);
             white-space: nowrap;
@@ -307,20 +344,20 @@
             text-overflow: ellipsis;
         }
 
-        .stat-value .highlight {
-            color: var(--secondary);
+        .status-item .stat-value .highlight {
+            color: var(--teal);
         }
 
-        /* ----- PETA ----- */
+        /* ===== MAP ===== */
         .map-wrapper {
             background: var(--white);
             border-radius: var(--radius);
             overflow: hidden;
             box-shadow: var(--shadow);
-            margin-bottom: 16px;
-            height: 340px;
+            margin-bottom: 14px;
             position: relative;
-            border: 2px solid rgba(78, 205, 196, 0.15);
+            height: 320px;
+            border: 2px solid rgba(78, 205, 196, 0.12);
         }
 
         #map {
@@ -330,28 +367,33 @@
 
         .map-overlay {
             position: absolute;
-            top: 14px;
-            left: 14px;
+            top: 10px;
+            left: 10px;
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
-            padding: 6px 16px;
+            padding: 5px 14px;
             border-radius: 30px;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 600;
             color: var(--gray);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            pointer-events: none;
             display: flex;
             align-items: center;
-            gap: 8px;
-            pointer-events: none;
+            gap: 6px;
         }
 
         .map-overlay .dot {
-            width: 10px;
-            height: 10px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: #2ECC71;
-            animation: pulse-dot 1.8s infinite;
+            animation: pulse-dot 1.6s infinite;
+        }
+
+        .map-overlay .dot.inactive {
+            background: #bdc3c7;
+            animation: none;
         }
 
         @keyframes pulse-dot {
@@ -362,251 +404,275 @@
             }
             50% {
                 opacity: 0.4;
-                transform: scale(0.7);
+                transform: scale(0.6);
             }
         }
 
-        /* ----- DETAIL LOKASI (Grid) ----- */
+        /* ===== LOCATION DETAILS ===== */
         .detail-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 16px;
+            gap: 8px;
+            margin-bottom: 14px;
         }
 
         .detail-card {
             background: var(--white);
             border-radius: var(--radius-sm);
-            padding: 14px 16px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 12px 14px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
             transition: var(--transition);
         }
 
         .detail-card .label {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--gray);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .detail-card .value {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
-            margin-top: 4px;
+            margin-top: 3px;
             color: var(--dark);
             word-break: break-all;
+            line-height: 1.3;
+        }
+
+        .detail-card .value .small {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--gray);
         }
 
         .detail-card.accent-coral {
-            border-left: 4px solid var(--coral);
+            border-left: 3px solid var(--coral);
         }
         .detail-card.accent-teal {
-            border-left: 4px solid var(--secondary);
+            border-left: 3px solid var(--teal);
         }
         .detail-card.accent-sunny {
-            border-left: 4px solid var(--accent);
+            border-left: 3px solid var(--sunny);
         }
         .detail-card.accent-purple {
-            border-left: 4px solid var(--primary);
+            border-left: 3px solid var(--purple);
         }
 
-        /* ----- RIWAYAT LOKASI ----- */
+        /* ===== HISTORY ===== */
         .history-section {
             background: var(--white);
             border-radius: var(--radius);
-            padding: 16px 18px;
+            padding: 14px 16px;
             box-shadow: var(--shadow);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
         .history-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
-        .history-header h3 {
-            font-size: 16px;
-            font-weight: 700;
+        .history-header .left {
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
+        .history-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .history-header h3 i {
-            color: var(--secondary);
+            color: var(--teal);
         }
 
         .history-header .count {
             background: var(--light-gray);
-            padding: 2px 14px;
+            padding: 1px 10px;
             border-radius: 30px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--gray);
         }
 
+        .history-header .btn-clear {
+            background: transparent;
+            border: none;
+            color: var(--coral);
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .history-header .btn-clear:hover {
+            background: #FDEDEC;
+        }
+
+        .history-header .btn-clear:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
         .history-list {
-            max-height: 200px;
+            max-height: 170px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
 
         .history-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 10px 14px;
+            justify-content: space-between;
+            padding: 8px 12px;
             background: #FAFAFA;
-            border-radius: 12px;
-            font-size: 13px;
-            border-left: 3px solid var(--secondary);
+            border-radius: 10px;
+            font-size: 12px;
             transition: var(--transition);
+            border-left: 3px solid var(--teal);
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
         .history-item .h-time {
             font-weight: 600;
             color: var(--dark);
-            font-size: 12px;
+            font-size: 11px;
+            white-space: nowrap;
         }
 
         .history-item .h-coord {
             color: var(--gray);
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            flex: 1;
+            min-width: 80px;
         }
 
         .history-item .h-status {
-            font-size: 16px;
+            font-size: 13px;
         }
 
         .history-empty {
             text-align: center;
-            padding: 28px 0;
+            padding: 20px 0;
             color: var(--gray);
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .history-empty i {
-            font-size: 36px;
+            font-size: 28px;
             display: block;
-            margin-bottom: 10px;
-            opacity: 0.3;
+            margin-bottom: 6px;
+            opacity: 0.4;
         }
 
-        /* ----- TOMBOL KONTROL ----- */
+        /* ===== CONTROLS ===== */
         .controls {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
-            margin-top: 6px;
+            margin-top: 2px;
         }
 
         .controls .btn {
             flex: 1;
-            min-width: 100px;
-            padding: 14px 20px;
+            min-width: 90px;
+            padding: 12px 14px;
             border: none;
-            border-radius: 40px;
-            font-family: var(--font);
+            border-radius: 30px;
+            font-family: 'Quicksand', sans-serif;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             cursor: pointer;
             transition: var(--transition);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
         }
 
         .controls .btn:active {
             transform: scale(0.95);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--secondary), #45B7AA);
+        .controls .btn-primary {
+            background: linear-gradient(135deg, var(--teal), #45B7AA);
             color: var(--white);
-            box-shadow: 0 4px 20px rgba(78, 205, 196, 0.35);
+            box-shadow: 0 4px 16px rgba(78, 205, 196, 0.30);
         }
 
-        .btn-primary:hover:not(:disabled) {
+        .controls .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(78, 205, 196, 0.45);
+            box-shadow: 0 6px 24px rgba(78, 205, 196, 0.40);
         }
 
-        .btn-primary:disabled {
+        .controls .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
+            transform: none !important;
         }
 
-        .btn-danger {
+        .controls .btn-danger {
             background: linear-gradient(135deg, var(--coral), #E74C3C);
             color: var(--white);
-            box-shadow: 0 4px 20px rgba(255, 107, 107, 0.35);
+            box-shadow: 0 4px 16px rgba(255, 107, 107, 0.30);
         }
 
-        .btn-danger:hover:not(:disabled) {
+        .controls .btn-danger:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.45);
+            box-shadow: 0 6px 24px rgba(255, 107, 107, 0.40);
         }
 
-        .btn-danger:disabled {
+        .controls .btn-danger:disabled {
             opacity: 0.4;
             cursor: not-allowed;
+            transform: none !important;
         }
 
-        .btn-outline {
+        .controls .btn-outline {
             background: var(--white);
             color: var(--dark);
             border: 2px solid var(--light-gray);
         }
 
-        .btn-outline:hover {
-            border-color: var(--secondary);
+        .controls .btn-outline:hover {
+            border-color: var(--teal);
             background: #F8FFFE;
         }
 
-        /* ----- PANEL INFORMASI (Petunjuk) ----- */
-        .info-panel {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(8px);
-            border-radius: var(--radius-sm);
-            padding: 14px 18px;
-            margin-top: 18px;
-            font-size: 13px;
-            color: var(--gray);
-            border: 1px solid rgba(78, 205, 196, 0.15);
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px 16px;
+        .controls .btn-outline:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
 
-        .info-panel i {
-            color: var(--secondary);
-            font-size: 18px;
-            margin-right: 4px;
-        }
-
-        .info-panel .step {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* ----- FOOTER ----- */
+        /* ===== FOOTER ===== */
         .app-footer {
             text-align: center;
-            padding: 20px 0 6px;
-            font-size: 12px;
+            padding: 16px 0 4px;
+            font-size: 11px;
             color: var(--gray);
             opacity: 0.6;
         }
@@ -615,25 +681,26 @@
             color: var(--coral);
         }
 
-        /* ----- TOAST NOTIFICATION ----- */
+        /* ===== TOAST ===== */
         .toast {
             position: fixed;
-            bottom: 100px;
+            bottom: 80px;
             left: 50%;
-            transform: translateX(-50%) translateY(30px);
+            transform: translateX(-50%) translateY(20px);
             background: var(--dark);
             color: var(--white);
-            padding: 14px 28px;
-            border-radius: 40px;
+            padding: 10px 22px;
+            border-radius: 30px;
             font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.20);
+            font-size: 13px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.20);
             opacity: 0;
-            transition: all 0.4s ease;
+            transition: var(--transition);
             pointer-events: none;
             z-index: 999;
-            max-width: 90%;
+            max-width: 92%;
             text-align: center;
+            line-height: 1.4;
         }
 
         .toast.show {
@@ -654,87 +721,101 @@
             background: #3498DB;
         }
 
-        /* ----- RESPONSIVE ----- */
-        @media (max-width: 440px) {
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 420px) {
             body {
-                padding: 10px 8px 80px;
+                padding: 10px;
+                padding-bottom: 76px;
             }
+
             .header-title {
-                font-size: 20px;
+                font-size: 17px;
             }
             .header-badge {
-                font-size: 10px;
-                padding: 3px 10px;
+                font-size: 9px;
+                padding: 2px 10px;
+            }
+            .header-icon {
+                font-size: 26px;
             }
             .input-card {
                 padding: 12px 14px;
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .input-card .icon-wrap {
-                width: 44px;
-                height: 44px;
-                align-self: center;
+                gap: 8px;
             }
             .input-card input {
-                min-width: unset;
-                text-align: center;
-            }
-            .input-card .btn-track {
-                justify-content: center;
-                width: 100%;
-            }
-            .status-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .status-item:last-child {
-                grid-column: span 2;
-            }
-            .detail-grid {
-                grid-template-columns: 1fr;
-            }
-            .map-wrapper {
-                height: 260px;
-            }
-            .controls .btn {
                 font-size: 14px;
-                padding: 12px 16px;
                 min-width: 80px;
             }
-            .info-panel {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
+            .input-card .btn-track {
+                font-size: 12px;
+                padding: 7px 14px;
+                width: 100%;
+            }
+            .detail-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .detail-card .value {
+                font-size: 12px;
+            }
+            .status-item {
+                padding: 8px 10px;
+            }
+            .status-item .stat-value {
+                font-size: 11px;
+            }
+            .map-wrapper {
+                height: 240px;
+            }
+            .controls .btn {
+                font-size: 12px;
+                padding: 10px 12px;
+                min-width: 70px;
+            }
+            .history-item {
+                font-size: 11px;
+                padding: 6px 10px;
             }
         }
 
         @media (max-width: 360px) {
-            .status-grid {
+            .detail-grid {
                 grid-template-columns: 1fr;
             }
-            .status-item:last-child {
-                grid-column: span 1;
-            }
-            .controls {
-                flex-direction: column;
+            .status-bar {
+                grid-template-columns: 1fr 1fr;
             }
             .controls .btn {
                 width: 100%;
+                flex: none;
+            }
+            .input-card {
+                flex-direction: column;
+            }
+            .input-card input {
+                width: 100%;
+                text-align: center;
+            }
+            .input-card .btn-track {
+                width: 100%;
+                justify-content: center;
             }
         }
 
-        /* ===== ANIMASI MASUK ===== */
-        .animate-in {
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeUp 0.6s ease forwards;
-        }
-
-        @keyframes fadeUp {
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px);
+            }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.45s ease forwards;
         }
 
         .delay-1 {
@@ -759,12 +840,12 @@
         /* ===== SPINNER ===== */
         .spinner {
             display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            width: 16px;
+            height: 16px;
+            border: 2.5px solid rgba(255, 255, 255, 0.30);
             border-radius: 50%;
             border-top-color: var(--white);
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.7s linear infinite;
         }
 
         @keyframes spin {
@@ -772,11 +853,23 @@
                 transform: rotate(360deg);
             }
         }
+
+        .spinner-dark {
+            border-color: rgba(0, 0, 0, 0.15);
+            border-top-color: var(--dark);
+        }
+
+        /* ===== MAP RESPONSIVE LANDSCAPE ===== */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .map-wrapper {
+                height: 180px;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <div class="app-container">
+    <div id="app">
 
         <!-- ===== HEADER ===== -->
         <header class="app-header animate-in">
@@ -785,26 +878,26 @@
                     <span class="header-icon">👶</span>
                     <h1 class="header-title">Safe<span>Track</span></h1>
                 </div>
-                <span class="header-badge"><i class="fas fa-shield-alt"></i> Aman</span>
+                <span class="header-badge"><i class="fas fa-shield-alt"></i> &nbsp;Aman</span>
             </div>
             <div class="header-sub">
-                <i class="fas fa-map-pin"></i> Pantau lokasi anak Anda secara real-time
+                <i class="fas fa-map-pin"></i> Pantau lokasi anak secara real-time &bull; <i class="fas fa-lock"></i> Privasi terjaga
             </div>
         </header>
 
-        <!-- ===== INPUT NOMOR ===== -->
+        <!-- ===== PHONE INPUT ===== -->
         <div class="input-card animate-in delay-1">
             <div class="icon-wrap">
                 <i class="fas fa-phone-alt"></i>
             </div>
-            <input type="tel" id="phoneInput" placeholder="Masukkan nomor HP anak" maxlength="15" />
+            <input type="tel" id="phoneInput" placeholder="Masukkan nomor HP anak" maxlength="15" autocomplete="tel" />
             <button class="btn-track" id="trackBtn">
                 <i class="fas fa-search"></i> Lacak
             </button>
         </div>
 
-        <!-- ===== STATUS GRID ===== -->
-        <div class="status-grid animate-in delay-2">
+        <!-- ===== STATUS BAR ===== -->
+        <div class="status-bar animate-in delay-2">
             <div class="status-item">
                 <div class="stat-icon green"><i class="fas fa-wifi"></i></div>
                 <div class="stat-info">
@@ -828,18 +921,25 @@
                     </div>
                 </div>
             </div>
+            <div class="status-item">
+                <div class="stat-icon orange"><i class="fas fa-phone"></i></div>
+                <div class="stat-info">
+                    <div class="stat-label">Nomor HP</div>
+                    <div class="stat-value" id="phoneDisplay">—</div>
+                </div>
+            </div>
         </div>
 
-        <!-- ===== PETA ===== -->
+        <!-- ===== MAP ===== -->
         <div class="map-wrapper animate-in delay-3">
             <div id="map"></div>
             <div class="map-overlay">
-                <span class="dot"></span>
+                <span class="dot" id="mapDot"></span>
                 <span id="mapStatus">Lokasi real-time</span>
             </div>
         </div>
 
-        <!-- ===== DETAIL LOKASI ===== -->
+        <!-- ===== LOCATION DETAILS ===== -->
         <div class="detail-grid animate-in delay-4">
             <div class="detail-card accent-coral">
                 <div class="label"><i class="fas fa-arrow-up"></i> Latitude</div>
@@ -859,11 +959,16 @@
             </div>
         </div>
 
-        <!-- ===== RIWAYAT ===== -->
+        <!-- ===== HISTORY ===== -->
         <div class="history-section animate-in delay-5">
             <div class="history-header">
-                <h3><i class="fas fa-history"></i> Riwayat Lokasi</h3>
-                <span class="count" id="historyCount">0</span>
+                <div class="left">
+                    <h3><i class="fas fa-history"></i> Riwayat Lokasi</h3>
+                    <span class="count" id="historyCount">0</span>
+                </div>
+                <button class="btn-clear" id="clearHistoryBtn" disabled>
+                    <i class="fas fa-trash-alt"></i> Hapus
+                </button>
             </div>
             <div class="history-list" id="historyList">
                 <div class="history-empty">
@@ -873,52 +978,47 @@
             </div>
         </div>
 
-        <!-- ===== KONTROL ===== -->
+        <!-- ===== CONTROLS ===== -->
         <div class="controls animate-in delay-6">
             <button class="btn btn-primary" id="startBtn">
-                <i class="fas fa-play"></i> Mulai Pantau
+                <i class="fas fa-play"></i> Mulai
             </button>
             <button class="btn btn-danger" id="stopBtn" disabled>
-                <i class="fas fa-stop"></i> Hentikan
+                <i class="fas fa-stop"></i> Henti
             </button>
-            <button class="btn btn-outline" id="refreshBtn">
-                <i class="fas fa-sync-alt"></i> Refresh
+            <button class="btn btn-outline" id="refreshBtn" disabled>
+                <i class="fas fa-sync-alt"></i> Segarkan
             </button>
-        </div>
-
-        <!-- ===== PANEL PETUNJUK ===== -->
-        <div class="info-panel animate-in delay-6">
-            <span><i class="fas fa-lightbulb"></i> <strong>Panduan:</strong></span>
-            <span class="step"><i class="fas fa-1"></i> Masukkan nomor HP</span>
-            <span class="step"><i class="fas fa-2"></i> Tekan <strong>Lacak</strong></span>
-            <span class="step"><i class="fas fa-3"></i> Izinkan akses lokasi</span>
-            <span class="step"><i class="fas fa-4"></i> Pantau pergerakan</span>
         </div>
 
         <!-- ===== FOOTER ===== -->
         <div class="app-footer">
             <i class="fas fa-heart"></i> SafeTrack &bull; Lindungi buah hati Anda
         </div>
+
+        <!-- ===== TOAST ===== -->
+        <div class="toast" id="toast"></div>
     </div>
 
-    <!-- ===== TOAST ===== -->
-    <div class="toast" id="toast"></div>
-
-    <!-- ================================================================ -->
-    <!--  JAVASCRIPT – LOGIKA APLIKASI                                   -->
-    <!-- ================================================================ -->
     <script>
+        // ================================================================
+        //  SAFETRACK — FULL APPLICATION LOGIC v2.0
+        //  Expert review & enhancement by UI/UX & Programming Specialist
+        // ================================================================
+
         (function() {
             'use strict';
 
-            // ---------- DOM REFS ----------
+            // ---- DOM refs ----
             const phoneInput = document.getElementById('phoneInput');
             const trackBtn = document.getElementById('trackBtn');
             const startBtn = document.getElementById('startBtn');
             const stopBtn = document.getElementById('stopBtn');
             const refreshBtn = document.getElementById('refreshBtn');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
             const providerDisplay = document.getElementById('providerDisplay');
             const imeiDisplay = document.getElementById('imeiDisplay');
+            const phoneDisplay = document.getElementById('phoneDisplay');
             const statusDisplay = document.getElementById('statusDisplay');
             const latDisplay = document.getElementById('latDisplay');
             const lngDisplay = document.getElementById('lngDisplay');
@@ -927,9 +1027,10 @@
             const historyList = document.getElementById('historyList');
             const historyCount = document.getElementById('historyCount');
             const mapStatus = document.getElementById('mapStatus');
+            const mapDot = document.getElementById('mapDot');
             const toast = document.getElementById('toast');
 
-            // ---------- STATE ----------
+            // ---- State ----
             let watchId = null;
             let isTracking = false;
             let history = [];
@@ -938,21 +1039,18 @@
             let marker = null;
             let circle = null;
             let lastPhoneNumber = '';
+            let isFirstFix = true;
 
-            // ---------- MOCK DATA (Simulasi Provider & IMEI) ----------
-            const PROVIDERS = ['Telkomsel', 'Indosat', 'XL Axiata', 'Smartfren', 'Three', 'By.U'];
+            // ---- Mock data (simulasi provider & IMEI) ----
+            const PROVIDERS = ['Telkomsel', 'Indosat Ooredoo', 'XL Axiata', 'Smartfren', 'Three', 'By.U'];
+            const IMEI_PREFIX = '35' + String(Math.floor(Math.random() * 1000000000000)).padStart(12, '0');
 
-            function getRandomProvider() {
-                return PROVIDERS[Math.floor(Math.random() * PROVIDERS.length)];
-            }
-
-            // Generate IMEI yang valid (15 digit) dengan Luhn check digit
             function generateIMEI() {
-                const prefix = '35' + String(Math.floor(Math.random() * 1000000000000)).padStart(12, '0');
+                const base = '35' + String(Math.floor(Math.random() * 1000000000000)).padStart(12, '0');
                 let sum = 0;
                 let alternate = true;
-                for (let i = prefix.length - 1; i >= 0; i--) {
-                    let n = parseInt(prefix[i], 10);
+                for (let i = base.length - 1; i >= 0; i--) {
+                    let n = parseInt(base[i], 10);
                     if (alternate) {
                         n *= 2;
                         if (n > 9) n -= 9;
@@ -961,12 +1059,16 @@
                     alternate = !alternate;
                 }
                 const check = (10 - (sum % 10)) % 10;
-                return prefix + check;
+                return base + check;
             }
 
             const mockIMEI = generateIMEI();
 
-            // ---------- TOAST ----------
+            function getRandomProvider() {
+                return PROVIDERS[Math.floor(Math.random() * PROVIDERS.length)];
+            }
+
+            // ---- Toast system ----
             let toastTimer = null;
 
             function showToast(message, type = 'info', duration = 3000) {
@@ -981,76 +1083,37 @@
                 else if (type === 'warning') toast.classList.add('warning');
                 else toast.classList.add('info');
 
-                void toast.offsetWidth; // reflow
+                void toast.offsetWidth;
                 toast.classList.add('show');
                 toastTimer = setTimeout(() => {
                     toast.classList.remove('show');
                 }, duration);
             }
 
-            // ---------- FORMAT WAKTU ----------
-            function formatFullTime(ts) {
+            // ---- Utilities ----
+            function formatTime(ts) {
                 const d = new Date(ts);
-                const date = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                const time = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                return `${date} ${time}`;
+                return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             }
 
-            // ---------- UPDATE UI DENGAN POSISI ----------
-            function updatePositionUI(pos) {
-                if (!pos) return;
-                const { latitude, longitude, accuracy } = pos.coords;
-                const timestamp = pos.timestamp;
-
-                currentPosition = pos;
-
-                latDisplay.textContent = latitude.toFixed(6);
-                lngDisplay.textContent = longitude.toFixed(6);
-                accDisplay.textContent = accuracy ? accuracy.toFixed(0) + ' m' : '—';
-                timeDisplay.textContent = formatFullTime(timestamp);
-
-                // Update peta
-                if (map && marker) {
-                    const latlng = [latitude, longitude];
-                    marker.setLatLng(latlng);
-                    if (circle) {
-                        circle.setLatLng(latlng);
-                        if (accuracy) {
-                            circle.setRadius(accuracy);
-                        } else {
-                            circle.setRadius(50);
-                        }
-                    }
-                    map.setView(latlng, 16, { animate: true });
-                }
-
-                statusDisplay.innerHTML = `<span class="highlight">● Terpantau</span>`;
-                mapStatus.textContent = 'Lokasi terkini';
-
-                // Tambah ke riwayat
-                addHistory(latitude, longitude, accuracy, timestamp);
+            function formatDate(ts) {
+                const d = new Date(ts);
+                return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
             }
 
-            // ---------- RIWAYAT ----------
-            function addHistory(lat, lng, acc, ts) {
-                const entry = {
-                    lat,
-                    lng,
-                    acc,
-                    time: ts,
-                    formatted: formatFullTime(ts)
-                };
-                history.push(entry);
-                if (history.length > 50) history.shift(); // batas 50
-                renderHistory();
-                // Simpan ke localStorage
-                try {
-                    localStorage.setItem('safetrack_history', JSON.stringify(history));
-                } catch (_) { /* abaikan */ }
+            function formatFullTime(ts) {
+                return formatDate(ts) + ' ' + formatTime(ts);
             }
 
+            function formatCoord(v) {
+                return v !== undefined && v !== null ? v.toFixed(6) : '—';
+            }
+
+            // ---- Render history ----
             function renderHistory() {
                 historyCount.textContent = history.length;
+                clearHistoryBtn.disabled = history.length === 0;
+
                 if (history.length === 0) {
                     historyList.innerHTML = `
                         <div class="history-empty">
@@ -1060,10 +1123,11 @@
                     `;
                     return;
                 }
+
                 let html = '';
                 const reversed = [...history].reverse();
                 for (const item of reversed) {
-                    const statusIcon = (item.acc && item.acc < 50) ? '✅' : '📍';
+                    const statusIcon = item.acc && item.acc < 50 ? '✅' : '📍';
                     html += `
                         <div class="history-item">
                             <span class="h-time">${item.formatted}</span>
@@ -1075,56 +1139,153 @@
                 historyList.innerHTML = html;
             }
 
-            // Muat riwayat dari localStorage
-            function loadHistory() {
-                try {
-                    const stored = localStorage.getItem('safetrack_history');
-                    if (stored) {
-                        const parsed = JSON.parse(stored);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            history = parsed;
-                            renderHistory();
-                        }
-                    }
-                } catch (_) { /* abaikan */ }
+            // ---- Add history entry ----
+            function addHistory(lat, lng, acc, ts) {
+                const entry = {
+                    lat: lat,
+                    lng: lng,
+                    acc: acc,
+                    time: ts,
+                    formatted: formatFullTime(ts)
+                };
+                history.push(entry);
+                if (history.length > 100) history.shift(); // batasi 100
+                renderHistory();
             }
 
-            // ---------- GEOLOKASI ----------
-            function startTracking() {
-                if (isTracking) return;
-
-                if (!navigator.geolocation) {
-                    showToast('❌ Browser tidak mendukung geolokasi.', 'error');
+            // ---- Clear history ----
+            function clearHistory() {
+                if (history.length === 0) return;
+                if (isTracking) {
+                    showToast('⏹️ Hentikan pelacakan terlebih dahulu untuk menghapus riwayat.', 'warning', 2500);
                     return;
                 }
+                history = [];
+                renderHistory();
+                // Reset display
+                latDisplay.textContent = '—';
+                lngDisplay.textContent = '—';
+                accDisplay.textContent = '—';
+                timeDisplay.textContent = '—';
+                phoneDisplay.textContent = '—';
+                // Reset map marker ke default
+                if (map && marker) {
+                    const defaultCenter = [-6.2088, 106.8456];
+                    marker.setLatLng(defaultCenter);
+                    if (circle) circle.setLatLng(defaultCenter);
+                    map.setView(defaultCenter, 13);
+                }
+                showToast('🗑️ Riwayat berhasil dihapus. Masukkan nomor baru untuk memulai.', 'success', 2000);
+                lastPhoneNumber = '';
+                phoneInput.value = '';
+                phoneInput.focus();
+                // Reset status
+                statusDisplay.innerHTML = `<span class="highlight">● Siap</span>`;
+                mapStatus.textContent = 'Lokasi real-time';
+                mapDot.className = 'dot';
+                providerDisplay.textContent = getRandomProvider();
+                imeiDisplay.textContent = mockIMEI;
+            }
+
+            // ---- Update UI dengan posisi ----
+            function updatePositionUI(pos) {
+                if (!pos) return;
+                const { latitude, longitude, accuracy } = pos.coords;
+                const timestamp = pos.timestamp || Date.now();
+
+                currentPosition = pos;
+
+                latDisplay.textContent = formatCoord(latitude);
+                lngDisplay.textContent = formatCoord(longitude);
+                accDisplay.textContent = accuracy ? accuracy.toFixed(0) + ' m' : '—';
+                timeDisplay.textContent = formatFullTime(timestamp);
+
+                // Update map
+                if (map && marker) {
+                    const latlng = [latitude, longitude];
+                    marker.setLatLng(latlng);
+                    if (circle) {
+                        circle.setLatLng(latlng);
+                        if (accuracy && accuracy < 500) {
+                            circle.setRadius(accuracy);
+                        } else {
+                            circle.setRadius(50);
+                        }
+                    }
+                    map.setView(latlng, 16, { animate: true });
+                }
+
+                // Status
+                statusDisplay.innerHTML = `<span style="color:#2ECC71;">● Terpantau</span>`;
+                mapStatus.textContent = 'Lokasi terkini';
+                mapDot.className = 'dot';
+
+                // Tambah ke history
+                addHistory(latitude, longitude, accuracy, timestamp);
+
+                if (isFirstFix) {
+                    isFirstFix = false;
+                    showToast('✅ Lokasi pertama berhasil didapatkan!', 'success', 2000);
+                }
+            }
+
+            // ---- Geolocation ----
+            function startTracking() {
+                if (isTracking) {
+                    showToast('⚠️ Pelacakan sudah aktif.', 'warning', 1500);
+                    return;
+                }
+
+                // Validasi nomor
+                const phone = phoneInput.value.trim();
+                if (!phone) {
+                    showToast('📱 Masukkan nomor HP anak terlebih dahulu.', 'warning');
+                    phoneInput.focus();
+                    return;
+                }
+                if (phone.length < 6) {
+                    showToast('⚠️ Nomor HP terlalu pendek (minimal 6 digit).', 'warning');
+                    phoneInput.focus();
+                    return;
+                }
+
+                if (!navigator.geolocation) {
+                    showToast('❌ Browser tidak mendukung geolokasi. Gunakan Chrome/Android.', 'error', 4000);
+                    return;
+                }
+
+                // Simpan nomor
+                lastPhoneNumber = phone;
+                phoneDisplay.textContent = phone;
 
                 // Set provider & IMEI (simulasi)
                 providerDisplay.textContent = getRandomProvider();
                 imeiDisplay.textContent = mockIMEI;
 
-                statusDisplay.innerHTML = `<span class="highlight">⏳ Mengambil lokasi...</span>`;
+                statusDisplay.innerHTML = `<span style="color:#F39C12;">⏳ Mengakses GPS...</span>`;
                 mapStatus.textContent = 'Mencari sinyal...';
-                showToast('📡 Mengakses lokasi perangkat...', 'info', 2000);
+                mapDot.className = 'dot';
+                isFirstFix = true;
+
+                showToast('📡 Mengakses lokasi perangkat... Mohon izinkan akses GPS.', 'info', 2500);
 
                 const geoOptions = {
                     enableHighAccuracy: true,
-                    timeout: 15000,
+                    timeout: 18000,
                     maximumAge: 5000
                 };
 
                 watchId = navigator.geolocation.watchPosition(
-                    // Success
+                    // success
                     (pos) => {
                         updatePositionUI(pos);
                         if (!isTracking) {
                             isTracking = true;
                             updateButtons();
-                            showToast('✅ Pelacakan real-time aktif!', 'success');
-                            const phone = phoneInput.value.trim();
-                            if (phone) lastPhoneNumber = phone;
+                            showToast('✅ Pelacakan real-time aktif!', 'success', 2000);
                         }
                     },
-                    // Error
+                    // error
                     (err) => {
                         console.error('Geolocation error:', err);
                         let msg = '❌ Gagal mengakses lokasi. ';
@@ -1141,20 +1302,21 @@
                             default:
                                 msg += err.message || 'Error tidak diketahui.';
                         }
-                        showToast(msg, 'error', 4000);
+                        showToast(msg, 'error', 4500);
                         statusDisplay.innerHTML = `<span style="color:var(--coral);">● Gagal</span>`;
                         mapStatus.textContent = '⛔ Tidak tersedia';
+                        mapDot.className = 'dot inactive';
                         stopTracking();
                     },
                     geoOptions
                 );
 
-                // Fallback timeout
+                // Fallback timeout jika watchPosition tidak merespon dalam 10 detik
                 setTimeout(() => {
                     if (!isTracking && watchId !== null) {
-                        // masih menunggu
+                        // masih mencoba, tidak melakukan apa-apa
                     }
-                }, 3000);
+                }, 10000);
             }
 
             function stopTracking() {
@@ -1166,13 +1328,14 @@
                 updateButtons();
                 statusDisplay.innerHTML = `<span style="color:var(--gray);">● Berhenti</span>`;
                 mapStatus.textContent = 'Pelacakan dihentikan';
+                mapDot.className = 'dot inactive';
                 showToast('⏹️ Pelacakan dihentikan.', 'info', 1500);
             }
 
             function refreshLocation() {
                 if (isTracking) {
                     showToast('🔄 Memperbarui lokasi...', 'info', 1000);
-                    // restart watch untuk refresh cepat
+                    // restart watch untuk force refresh
                     stopTracking();
                     setTimeout(() => {
                         startTracking();
@@ -1182,21 +1345,26 @@
                 }
             }
 
+            // ---- Update tombol ----
             function updateButtons() {
                 if (isTracking) {
                     startBtn.disabled = true;
+                    startBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Aktif`;
                     stopBtn.disabled = false;
                     trackBtn.disabled = true;
-                    startBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Memantau`;
+                    refreshBtn.disabled = false;
+                    clearHistoryBtn.disabled = true;
                 } else {
                     startBtn.disabled = false;
+                    startBtn.innerHTML = `<i class="fas fa-play"></i> Mulai`;
                     stopBtn.disabled = true;
                     trackBtn.disabled = false;
-                    startBtn.innerHTML = `<i class="fas fa-play"></i> Mulai Pantau`;
+                    refreshBtn.disabled = true;
+                    clearHistoryBtn.disabled = history.length === 0;
                 }
             }
 
-            // ---------- INISIALISASI PETA ----------
+            // ---- Inisialisasi Map ----
             function initMap() {
                 const mapContainer = document.getElementById('map');
                 const defaultCenter = [-6.2088, 106.8456]; // Jakarta
@@ -1213,9 +1381,12 @@
                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
                 }).addTo(map);
 
-                L.control.zoom({ position: 'bottomright' }).addTo(map);
+                // Zoom control di kanan bawah
+                L.control.zoom({
+                    position: 'bottomright'
+                }).addTo(map);
 
-                // Marker custom dengan ikon anak
+                // Custom marker dengan emoji
                 const iconHtml = `
                     <div style="
                         background: #4ECDC4;
@@ -1227,8 +1398,9 @@
                         justify-content: center;
                         font-size: 24px;
                         border: 3px solid white;
-                        box-shadow: 0 4px 20px rgba(78,205,196,0.5);
+                        box-shadow: 0 4px 20px rgba(78,205,196,0.50);
                         transform: translate(-50%, -50%);
+                        transition: all 0.3s ease;
                     ">
                         👶
                     </div>
@@ -1240,7 +1412,12 @@
                     iconAnchor: [22, 22]
                 });
 
-                marker = L.marker(defaultCenter, { icon: customIcon, draggable: false }).addTo(map);
+                marker = L.marker(defaultCenter, {
+                    icon: customIcon,
+                    draggable: false
+                }).addTo(map);
+
+                // Circle akurasi
                 circle = L.circle(defaultCenter, {
                     radius: 50,
                     color: '#4ECDC4',
@@ -1250,15 +1427,17 @@
                     opacity: 0.7
                 }).addTo(map);
 
-                // Klik pada peta tampilkan koordinat
+                // Klik map untuk info
                 map.on('click', function(e) {
-                    showToast(`📍 ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`, 'info', 2000);
+                    showToast(`📍 ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`, 'info', 1800);
                 });
 
-                // Resize peta setelah render
-                setTimeout(() => map.invalidateSize(), 500);
+                // Resize handler
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 500);
 
-                // Coba dapatkan posisi awal
+                // Coba dapatkan posisi awal (tanpa memulai tracking penuh)
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         (pos) => {
@@ -1270,70 +1449,88 @@
                             if (pos.coords.accuracy) {
                                 circle.setRadius(pos.coords.accuracy);
                             }
-                            updatePositionUI(pos);
+                            // Tampilkan posisi tanpa menambah history
+                            latDisplay.textContent = formatCoord(latitude);
+                            lngDisplay.textContent = formatCoord(longitude);
+                            accDisplay.textContent = pos.coords.accuracy ?
+                                pos.coords.accuracy.toFixed(0) + ' m' :
+                                '—';
+                            timeDisplay.textContent = formatFullTime(pos.timestamp);
+                            statusDisplay.innerHTML = `<span class="highlight">● Siap</span>`;
                             providerDisplay.textContent = getRandomProvider();
                             imeiDisplay.textContent = mockIMEI;
-                            statusDisplay.innerHTML = `<span class="highlight">● Siap</span>`;
+                            mapStatus.textContent = 'Posisi awal';
+                            mapDot.className = 'dot';
                         },
                         () => {
-                            showToast('📍 Menggunakan lokasi default (Jakarta). Aktifkan GPS untuk akurasi.', 'warning',
-                            3000);
+                            // fallback ke default
+                            showToast('📍 Gunakan default Jakarta. Aktifkan GPS untuk akurasi.', 'warning', 3000);
+                            mapStatus.textContent = 'Default Jakarta';
+                            mapDot.className = 'dot inactive';
                         }, { enableHighAccuracy: true, timeout: 8000 }
                     );
                 }
+
+                // Set default info
+                providerDisplay.textContent = getRandomProvider();
+                imeiDisplay.textContent = mockIMEI;
             }
 
-            // ---------- EVENT LISTENER ----------
+            // ---- Event Handlers ----
             trackBtn.addEventListener('click', function() {
                 const phone = phoneInput.value.trim();
                 if (!phone) {
-                    showToast('📱 Masukkan nomor HP terlebih dahulu.', 'warning');
+                    showToast('📱 Masukkan nomor HP anak terlebih dahulu.', 'warning');
                     phoneInput.focus();
                     return;
                 }
-                if (phone.length < 8) {
-                    showToast('⚠️ Nomor HP tidak valid (minimal 8 digit).', 'warning');
+                if (phone.length < 6) {
+                    showToast('⚠️ Nomor HP tidak valid (minimal 6 digit).', 'warning');
+                    phoneInput.focus();
                     return;
                 }
-                lastPhoneNumber = phone;
-                showToast(`🔍 Melacak nomor ${phone}...`, 'info', 1500);
-
-                providerDisplay.textContent = getRandomProvider();
-                imeiDisplay.textContent = mockIMEI;
-
-                if (!isTracking) {
-                    startTracking();
-                } else {
+                // Jika sudah tracking, refresh
+                if (isTracking) {
                     refreshLocation();
+                    return;
                 }
+                // Mulai tracking
+                startTracking();
             });
 
             startBtn.addEventListener('click', startTracking);
             stopBtn.addEventListener('click', stopTracking);
             refreshBtn.addEventListener('click', refreshLocation);
+            clearHistoryBtn.addEventListener('click', clearHistory);
 
+            // Enter key pada input
             phoneInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') trackBtn.click();
+                if (e.key === 'Enter') {
+                    trackBtn.click();
+                }
             });
 
-            // ---------- INISIALISASI ----------
+            // ---- Inisialisasi ----
             function init() {
-                loadHistory();
                 initMap();
                 updateButtons();
+                if (!navigator.geolocation) {
+                    showToast('❌ Browser tidak mendukung GPS. Gunakan Chrome/Android.', 'error', 4000);
+                    statusDisplay.innerHTML = `<span style="color:var(--coral);">● Tidak didukung</span>`;
+                    mapStatus.textContent = 'GPS tidak didukung';
+                    mapDot.className = 'dot inactive';
+                }
 
                 // Set default IMEI & provider
                 imeiDisplay.textContent = mockIMEI;
                 providerDisplay.textContent = getRandomProvider();
+                phoneDisplay.textContent = '—';
 
-                if (!navigator.geolocation) {
-                    showToast('❌ Browser tidak mendukung GPS. Gunakan Chrome/Android.', 'error', 4000);
-                    statusDisplay.innerHTML = `<span style="color:var(--coral);">● Tidak didukung</span>`;
-                }
-
-                console.log('👶 SafeTrack initialized. IMEI:', mockIMEI);
+                console.log('👶 SafeTrack v2.0 initialized. IMEI:', mockIMEI);
+                console.log('📱 Aplikasi siap digunakan untuk memantau lokasi anak.');
             }
 
+            // ---- Run ----
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
@@ -1342,5 +1539,6 @@
 
         })();
     </script>
+
 </body>
 </html>
