@@ -1,1456 +1,1484 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>👶 SafeTrack - Pantau Lokasi Anak</title>
-
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    </script>
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
-
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-    <style>
-        /* ===== RESET & BASE ===== */
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --coral: #FF6B6B;
-            --teal: #4ECDC4;
-            --sunny: #FFE66D;
-            --mint: #A8E6CF;
-            --peach: #FF8A5C;
-            --purple: #6C5CE7;
-            --pink: #FD79A8;
-            --sky: #74B9FF;
-            --dark: #2D3436;
-            --gray: #636E72;
-            --light-gray: #DFE6E9;
-            --white: #FFFFFF;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-            --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.18);
-            --radius: 24px;
-            --radius-sm: 14px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        html {
-            font-size: 16px;
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: 'Quicksand', sans-serif;
-            background: linear-gradient(145deg, #FFF9F0 0%, #F8F0FF 100%);
-            min-height: 100vh;
-            padding: 16px;
-            padding-bottom: 100px;
-            color: var(--dark);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* ===== SCROLLBAR ===== */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--light-gray);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--teal);
-            border-radius: 10px;
-        }
-
-        /* ===== APP CONTAINER ===== */
-        #app {
-            max-width: 480px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        /* ===== HEADER ===== */
-        .app-header {
-            background: linear-gradient(135deg, var(--purple), var(--pink));
-            padding: 20px 24px 18px;
-            border-radius: var(--radius);
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .app-header::before {
-            content: '✨';
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            font-size: 80px;
-            opacity: 0.15;
-            transform: rotate(15deg);
-        }
-
-        .app-header::after {
-            content: '🌟';
-            position: absolute;
-            bottom: -20px;
-            left: -10px;
-            font-size: 60px;
-            opacity: 0.12;
-        }
-
-        .header-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .header-icon {
-            font-size: 32px;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-6px);
-            }
-        }
-
-        .header-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--white);
-            letter-spacing: -0.3px;
-        }
-
-        .header-title span {
-            font-weight: 400;
-            opacity: 0.85;
-        }
-
-        .header-badge {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(4px);
-            padding: 4px 14px;
-            border-radius: 30px;
-            color: var(--white);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .header-sub {
-            color: rgba(255, 255, 255, 0.92);
-            font-size: 13px;
-            font-weight: 400;
-            margin-top: 6px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .header-sub .tracked-number {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 13px;
-            color: var(--sunny);
-        }
-
-        /* ===== PHONE INPUT CARD ===== */
-        .input-card {
-            background: var(--white);
-            border-radius: var(--radius);
-            padding: 18px 20px;
-            box-shadow: var(--shadow);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: var(--transition);
-            border: 2px solid transparent;
-            flex-wrap: wrap;
-        }
-
-        .input-card:focus-within {
-            border-color: var(--teal);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .input-card .icon-wrap {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, var(--sunny), var(--peach));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .input-card input {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-family: 'Quicksand', sans-serif;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--dark);
-            background: transparent;
-            padding: 8px 0;
-            min-width: 120px;
-        }
-
-        .input-card input::placeholder {
-            color: var(--gray);
-            font-weight: 400;
-            font-size: 14px;
-        }
-
-        .input-card .btn-track {
-            background: linear-gradient(135deg, var(--teal), #45B7AA);
-            border: none;
-            color: var(--white);
-            font-family: 'Quicksand', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            padding: 10px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: var(--transition);
-            white-space: nowrap;
-            flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.35);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .input-card .btn-track:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.45);
-        }
-
-        .input-card .btn-track:active {
-            transform: scale(0.96);
-        }
-
-        .input-card .btn-track:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* ===== STATUS BAR ===== */
-        .status-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .status-item {
-            flex: 1;
-            min-width: 100px;
-            background: var(--white);
-            border-radius: var(--radius-sm);
-            padding: 12px 16px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: var(--transition);
-            border-left: 4px solid var(--teal);
-        }
-
-        .status-item .stat-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-
-        .status-item .stat-icon.green {
-            background: #E8F8F5;
-            color: #1ABC9C;
-        }
-        .status-item .stat-icon.orange {
-            background: #FEF5E7;
-            color: #F39C12;
-        }
-        .status-item .stat-icon.purple {
-            background: #F4ECF7;
-            color: #8E44AD;
-        }
-        .status-item .stat-icon.blue {
-            background: #EBF5FB;
-            color: #3498DB;
-        }
-        .status-item .stat-icon.pink {
-            background: #FDEDEC;
-            color: #E74C3C;
-        }
-
-        .status-item .stat-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .status-item .stat-label {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--gray);
-        }
-
-        .status-item .stat-value {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--dark);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .status-item .stat-value .highlight {
-            color: var(--teal);
-        }
-
-        /* ===== MAP ===== */
-        .map-wrapper {
-            background: var(--white);
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            margin-bottom: 16px;
-            position: relative;
-            height: 340px;
-            border: 2px solid rgba(78, 205, 196, 0.15);
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-        }
-
-        .map-overlay {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(8px);
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--gray);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .map-overlay .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #2ECC71;
-            animation: pulse-dot 1.5s infinite;
-        }
-
-        @keyframes pulse-dot {
-            0%,
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 0.5;
-                transform: scale(0.7);
-            }
-        }
-
-        /* ===== LOCATION DETAILS ===== */
-        .detail-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .detail-card {
-            background: var(--white);
-            border-radius: var(--radius-sm);
-            padding: 14px 16px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-            transition: var(--transition);
-        }
-
-        .detail-card .label {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--gray);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .detail-card .value {
-            font-size: 15px;
-            font-weight: 700;
-            margin-top: 4px;
-            color: var(--dark);
-            word-break: break-all;
-        }
-
-        .detail-card .value .small {
-            font-size: 12px;
-            font-weight: 400;
-            color: var(--gray);
-        }
-
-        .detail-card.accent-coral {
-            border-left: 4px solid var(--coral);
-        }
-        .detail-card.accent-teal {
-            border-left: 4px solid var(--teal);
-        }
-        .detail-card.accent-sunny {
-            border-left: 4px solid var(--sunny);
-        }
-        .detail-card.accent-purple {
-            border-left: 4px solid var(--purple);
-        }
-
-        /* ===== HISTORY ===== */
-        .history-section {
-            background: var(--white);
-            border-radius: var(--radius);
-            padding: 16px 18px;
-            box-shadow: var(--shadow);
-            margin-bottom: 16px;
-        }
-
-        .history-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .history-header h3 {
-            font-size: 16px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .history-header h3 i {
-            color: var(--teal);
-        }
-
-        .history-header .actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .history-header .count {
-            background: var(--light-gray);
-            padding: 2px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--gray);
-        }
-
-        .history-header .btn-clear {
-            background: transparent;
-            border: 1px solid var(--coral);
-            color: var(--coral);
-            padding: 4px 14px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .history-header .btn-clear:hover {
-            background: var(--coral);
-            color: var(--white);
-        }
-
-        .history-list {
-            max-height: 180px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .history-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            background: #FAFAFA;
-            border-radius: 12px;
-            font-size: 13px;
-            transition: var(--transition);
-            border-left: 3px solid var(--teal);
-        }
-
-        .history-item .h-time {
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 12px;
-        }
-
-        .history-item .h-coord {
-            color: var(--gray);
-            font-size: 12px;
-        }
-
-        .history-item .h-status {
-            font-size: 14px;
-        }
-
-        .history-empty {
-            text-align: center;
-            padding: 24px 0;
-            color: var(--gray);
-            font-size: 14px;
-        }
-
-        .history-empty i {
-            font-size: 32px;
-            display: block;
-            margin-bottom: 8px;
-            opacity: 0.4;
-        }
-
-        /* ===== CONTROLS ===== */
-        .controls {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-
-        .controls .btn {
-            flex: 1;
-            min-width: 110px;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 30px;
-            font-family: 'Quicksand', sans-serif;
-            font-weight: 700;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-        }
-
-        .controls .btn:active {
-            transform: scale(0.96);
-        }
-
-        .controls .btn-primary {
-            background: linear-gradient(135deg, var(--teal), #45B7AA);
-            color: var(--white);
-            box-shadow: 0 4px 16px rgba(78, 205, 196, 0.35);
-        }
-
-        .controls .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(78, 205, 196, 0.45);
-        }
-
-        .controls .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .controls .btn-danger {
-            background: linear-gradient(135deg, var(--coral), #E74C3C);
-            color: var(--white);
-            box-shadow: 0 4px 16px rgba(255, 107, 107, 0.35);
-        }
-
-        .controls .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(255, 107, 107, 0.45);
-        }
-
-        .controls .btn-danger:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .controls .btn-outline {
-            background: var(--white);
-            color: var(--dark);
-            border: 2px solid var(--light-gray);
-        }
-
-        .controls .btn-outline:hover {
-            border-color: var(--teal);
-            background: #F8FFFE;
-        }
-
-        /* ===== FOOTER ===== */
-        .app-footer {
-            text-align: center;
-            padding: 20px 0 8px;
-            font-size: 12px;
-            color: var(--gray);
-            opacity: 0.7;
-        }
-
-        .app-footer i {
-            color: var(--coral);
-        }
-
-        .app-footer .tech-note {
-            font-size: 11px;
-            margin-top: 6px;
-            opacity: 0.6;
-            background: var(--white);
-            padding: 8px 16px;
-            border-radius: 30px;
-            display: inline-block;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        }
-
-        /* ===== TOAST ===== */
-        .toast {
-            position: fixed;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background: var(--dark);
-            color: var(--white);
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            transition: var(--transition);
-            pointer-events: none;
-            z-index: 999;
-            max-width: 90%;
-            text-align: center;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .toast.success {
-            background: #1ABC9C;
-        }
-        .toast.error {
-            background: var(--coral);
-        }
-        .toast.warning {
-            background: #F39C12;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 420px) {
-            body {
-                padding: 10px;
-                padding-bottom: 80px;
-            }
-
-            .header-title {
-                font-size: 18px;
-            }
-            .header-badge {
-                font-size: 9px;
-                padding: 3px 10px;
-            }
-            .input-card {
-                padding: 14px 16px;
-                flex-wrap: wrap;
-            }
-            .input-card input {
-                font-size: 14px;
-                min-width: 120px;
-            }
-            .input-card .btn-track {
-                font-size: 13px;
-                padding: 8px 16px;
-                width: 100%;
-            }
-            .detail-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
-            .detail-card .value {
-                font-size: 13px;
-            }
-            .status-item {
-                min-width: 70px;
-                padding: 10px 12px;
-            }
-            .status-item .stat-value {
-                font-size: 12px;
-            }
-            .map-wrapper {
-                height: 260px;
-            }
-            .controls .btn {
-                font-size: 13px;
-                padding: 12px 16px;
-                min-width: 80px;
-            }
-            .history-header .actions {
-                width: 100%;
-                justify-content: flex-start;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .detail-grid {
-                grid-template-columns: 1fr;
-            }
-            .status-bar {
-                flex-direction: column;
-            }
-            .status-item {
-                min-width: unset;
-            }
-            .controls {
-                flex-direction: column;
-            }
-            .controls .btn {
-                width: 100%;
-            }
-        }
-
-        /* ===== ANIMATIONS ===== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-in {
-            animation: fadeInUp 0.5s ease forwards;
-        }
-
-        .delay-1 {
-            animation-delay: 0.05s;
-        }
-        .delay-2 {
-            animation-delay: 0.1s;
-        }
-        .delay-3 {
-            animation-delay: 0.15s;
-        }
-        .delay-4 {
-            animation-delay: 0.2s;
-        }
-        .delay-5 {
-            animation-delay: 0.25s;
-        }
-
-        /* ===== LOADING SPINNER ===== */
-        .spinner {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--white);
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* ===== RESPONSIVE MAP HEIGHT ===== */
-        @media (orientation: landscape) and (max-height: 500px) {
-            .map-wrapper {
-                height: 200px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="SafeTrack – Pantau lokasi anak secara real-time. Aman, mudah, dan terpercaya untuk orang tua Indonesia.">
+<meta name="theme-color" content="#1B4D8E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SafeTrack">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+<title>SafeTrack — Pantau Lokasi Anak</title>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<!-- Fonts: Nunito (display) + Inter (body) -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+<style>
+/* ═══════════════════════════════════════════
+   TOKEN SYSTEM
+═══════════════════════════════════════════ */
+:root {
+  --navy:       #1B4D8E;
+  --navy-mid:   #2563C0;
+  --navy-light: #EBF2FF;
+  --safe:       #00C896;
+  --safe-dark:  #009E78;
+  --safe-light: #E6FFF8;
+  --alert:      #FF6040;
+  --alert-light:#FFF1EE;
+  --sun:        #FFD166;
+  --sun-light:  #FFFBEE;
+  --ink:        #0F1C2E;
+  --ink-mid:    #3A5068;
+  --ink-soft:   #7B95AD;
+  --surface:    #F3F7FC;
+  --white:      #FFFFFF;
+  --border:     rgba(27,77,142,0.10);
+  --sh-sm:      0 2px 10px rgba(27,77,142,0.08);
+  --sh-md:      0 8px 32px rgba(27,77,142,0.13);
+  --sh-lg:      0 20px 60px rgba(27,77,142,0.18);
+  --r-sm:       12px;
+  --r-md:       20px;
+  --r-lg:       28px;
+  --r-xl:       40px;
+}
+
+/* ═══════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(160deg,#EBF2FF 0%,#F3F7FC 60%,#E6FFF8 100%);
+  color:var(--ink);
+  min-height:100dvh;
+  line-height:1.6;
+  overscroll-behavior:none;
+}
+h1,h2,h3,h4,h5,.nu{font-family:'Nunito',sans-serif}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--navy-mid);border-radius:4px}
+
+/* ═══════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════ */
+#app{
+  max-width:480px;
+  margin:0 auto;
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ═══════════════════════════════════════════
+   MODE SELECTOR (onboarding)
+═══════════════════════════════════════════ */
+#modeScreen{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:28px 20px 40px;
+  gap:0;
+}
+.mode-brand{
+  display:flex;flex-direction:column;align-items:center;
+  margin-bottom:36px;
+}
+.mode-brand .brand-icon{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,var(--navy),var(--navy-mid));
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.4rem;
+  box-shadow:var(--sh-md),0 0 0 6px rgba(27,77,142,.12);
+  margin-bottom:14px;
+  animation:floatIcon 4s ease-in-out infinite;
+}
+@keyframes floatIcon{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+.mode-brand h1{
+  font-size:2rem;font-weight:900;
+  color:var(--ink);letter-spacing:-.03em;
+  line-height:1;
+}
+.mode-brand h1 span{color:var(--navy)}
+.mode-brand p{
+  font-size:.85rem;color:var(--ink-soft);
+  margin-top:6px;text-align:center;
+  font-family:'Inter',sans-serif;
+}
+.mode-label{
+  font-size:.72rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-soft);
+  margin-bottom:14px;align-self:flex-start;padding-left:4px;
+}
+.mode-cards{
+  display:flex;flex-direction:column;gap:14px;
+  width:100%;max-width:400px;
+}
+.mode-card{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  padding:22px 22px 20px;
+  border:2px solid var(--border);
+  box-shadow:var(--sh-sm);
+  display:flex;align-items:center;gap:16px;
+  cursor:pointer;
+  transition:transform .18s,box-shadow .18s,border-color .18s;
+  position:relative;overflow:hidden;
+}
+.mode-card::before{
+  content:'';position:absolute;inset:0;
+  opacity:0;transition:opacity .2s;
+}
+.mode-card.parent::before{background:linear-gradient(135deg,rgba(27,77,142,.04),transparent)}
+.mode-card.child::before{background:linear-gradient(135deg,rgba(0,200,150,.04),transparent)}
+.mode-card:active{transform:scale(.97)}
+.mode-card:hover{box-shadow:var(--sh-md);border-color:transparent}
+.mode-card.parent:hover{border-color:var(--navy)}
+.mode-card.child:hover{border-color:var(--safe)}
+.mode-card .mc-icon{
+  width:56px;height:56px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;flex-shrink:0;
+}
+.mode-card.parent .mc-icon{background:var(--navy-light);color:var(--navy)}
+.mode-card.child .mc-icon{background:var(--safe-light);color:var(--safe-dark)}
+.mode-card .mc-text{flex:1}
+.mode-card .mc-text h3{font-size:1.05rem;font-weight:800;color:var(--ink);margin-bottom:3px}
+.mode-card .mc-text p{font-size:.78rem;color:var(--ink-mid);line-height:1.4;font-family:'Inter',sans-serif}
+.mode-card .mc-arrow{color:var(--ink-soft);font-size:.85rem;flex-shrink:0}
+
+.mode-note{
+  margin-top:20px;
+  background:rgba(255,209,102,.2);
+  border:1.5px solid rgba(255,209,102,.5);
+  border-radius:var(--r-md);
+  padding:12px 16px;
+  font-size:.76rem;color:var(--ink-mid);
+  line-height:1.5;
+  display:flex;gap:8px;align-items:flex-start;
+  max-width:400px;width:100%;
+}
+.mode-note i{color:#B8860B;flex-shrink:0;margin-top:2px}
+
+/* ═══════════════════════════════════════════
+   PARENT SCREEN
+═══════════════════════════════════════════ */
+#parentScreen{display:none;flex-direction:column;flex:1;padding-bottom:20px}
+
+/* ─── Header ─── */
+.p-header{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);
+  padding:16px 20px 18px;
+  color:var(--white);
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 20px rgba(27,77,142,.2);
+}
+.p-header-top{display:flex;align-items:center;gap:10px}
+.p-header-back{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:.9rem;flex-shrink:0;
+  transition:.15s;
+}
+.p-header-back:active{transform:scale(.92)}
+.p-header-brand{flex:1}
+.p-header-brand h2{font-size:1.1rem;font-weight:800;line-height:1}
+.p-header-brand p{font-size:.7rem;opacity:.75;font-family:'Inter',sans-serif;margin-top:2px}
+.status-pill{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.15);
+  padding:5px 12px;border-radius:50px;
+  font-size:.68rem;font-weight:700;color:#fff;
+  white-space:nowrap;
+}
+.status-pill .sp-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--safe);
+}
+.status-pill .sp-dot.active{animation:blink 1.4s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ─── Content ─── */
+.p-body{padding:16px 16px 0}
+
+/* ─── Tautan card ─── */
+.link-card{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  box-shadow:var(--sh-sm);
+  overflow:hidden;
+  margin-bottom:14px;
+}
+.link-card-head{
+  padding:14px 18px 12px;
+  border-bottom:1.5px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.link-card-head .lch-icon{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.95rem;flex-shrink:0;
+}
+.link-card-head h3{font-size:.95rem;font-weight:800;color:var(--ink)}
+.link-card-head p{font-size:.7rem;color:var(--ink-soft);font-family:'Inter',sans-serif}
+.link-card-body{padding:16px 18px}
+
+/* session code display */
+.session-code-wrap{
+  background:var(--navy-light);
+  border:1.5px dashed rgba(27,77,142,.25);
+  border-radius:var(--r-md);
+  padding:14px 16px;
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:12px;
+}
+.session-code-wrap .sc-icon{color:var(--navy);font-size:1.2rem;flex-shrink:0}
+.session-code-wrap .sc-info{flex:1}
+.session-code-wrap .sc-label{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.session-code-wrap .sc-val{
+  font-size:1.6rem;font-weight:900;
+  color:var(--navy);letter-spacing:.15em;
+  font-family:'Nunito',sans-serif;
+}
+.session-code-wrap .btn-copy{
+  background:var(--navy);color:#fff;
+  font-size:.72rem;font-weight:700;
+  padding:8px 14px;border-radius:50px;
+  display:flex;align-items:center;gap:5px;
+  transition:.15s;flex-shrink:0;
+}
+.session-code-wrap .btn-copy:active{transform:scale(.94)}
+
+.link-share-row{
+  display:flex;gap:8px;
+  margin-bottom:12px;
+}
+.link-display{
+  flex:1;
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:var(--r-sm);
+  padding:10px 12px;
+  font-size:.72rem;color:var(--ink-mid);
+  font-family:'Inter',sans-serif;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:flex;align-items:center;
+}
+.btn-share{
+  background:var(--safe);color:#fff;
+  font-size:.78rem;font-weight:700;
+  padding:10px 16px;border-radius:var(--r-sm);
+  display:flex;align-items:center;gap:6px;
+  flex-shrink:0;transition:.15s;
+}
+.btn-share:active{transform:scale(.95)}
+
+/* ─── Map ─── */
+.map-card{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  box-shadow:var(--sh-sm);
+  overflow:hidden;
+  margin-bottom:14px;
+  position:relative;
+}
+#parentMap{width:100%;height:290px}
+
+/* THE SIGNATURE ELEMENT: radar overlay on map */
+.radar-overlay{
+  position:absolute;
+  top:12px;right:12px;
+  z-index:500;
+  pointer-events:none;
+}
+.radar-pulse{
+  position:relative;
+  width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+}
+.radar-ring{
+  position:absolute;
+  border-radius:50%;
+  border:2px solid var(--safe);
+  opacity:0;
+  animation:radarExpand 2.4s ease-out infinite;
+}
+.radar-ring:nth-child(1){width:16px;height:16px;animation-delay:0s}
+.radar-ring:nth-child(2){width:28px;height:28px;animation-delay:.6s}
+.radar-ring:nth-child(3){width:42px;height:42px;animation-delay:1.2s}
+@keyframes radarExpand{
+  0%{opacity:.9;transform:scale(.4)}
+  100%{opacity:0;transform:scale(1)}
+}
+.radar-center{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--safe);
+  box-shadow:0 0 0 3px rgba(0,200,150,.3);
+  z-index:1;
+}
+.radar-label{
+  position:absolute;
+  bottom:12px;left:12px;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(8px);
+  padding:6px 12px;border-radius:50px;
+  font-size:.7rem;font-weight:700;color:var(--ink-mid);
+  box-shadow:var(--sh-sm);
+  display:flex;align-items:center;gap:6px;
+}
+.radar-label .rl-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--safe);
+  animation:blink 1.4s ease infinite;
+}
+.radar-label.offline .rl-dot{background:var(--alert);animation:none}
+.radar-label.offline{color:var(--alert)}
+
+/* ─── Stats row ─── */
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:14px;
+}
+.stat-box{
+  background:var(--white);
+  border-radius:var(--r-md);
+  border:1.5px solid var(--border);
+  padding:12px 10px;
+  text-align:center;
+  box-shadow:var(--sh-sm);
+}
+.stat-box .sb-icon{font-size:1.2rem;margin-bottom:4px}
+.stat-box .sb-val{
+  font-family:'Nunito',sans-serif;
+  font-size:1rem;font-weight:900;color:var(--ink);
+  display:block;line-height:1;margin-bottom:3px;
+}
+.stat-box .sb-label{
+  font-size:.65rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-soft);
+}
+
+/* ─── History ─── */
+.history-card{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  box-shadow:var(--sh-sm);
+  overflow:hidden;
+  margin-bottom:14px;
+}
+.history-card-head{
+  padding:14px 18px;
+  border-bottom:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.history-card-head h3{font-size:.95rem;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:7px}
+.history-card-head h3 i{color:var(--navy)}
+.history-badge{
+  background:var(--navy-light);color:var(--navy);
+  font-size:.7rem;font-weight:700;
+  padding:3px 10px;border-radius:50px;
+}
+.history-scroll{max-height:200px;overflow-y:auto}
+.history-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 18px;
+  border-bottom:1px solid rgba(27,77,142,.06);
+  transition:.15s;
+}
+.history-item:last-child{border-bottom:none}
+.history-item .hi-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--safe);flex-shrink:0;
+}
+.history-item .hi-dot.old{background:var(--border);background:rgba(27,77,142,.2)}
+.history-item .hi-time{
+  font-size:.72rem;font-weight:700;color:var(--ink-mid);
+  white-space:nowrap;flex-shrink:0;
+}
+.history-item .hi-coord{
+  flex:1;font-size:.7rem;color:var(--ink-soft);
+  font-family:'Inter',sans-serif;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.history-item .hi-acc{
+  font-size:.68rem;font-weight:600;color:var(--safe-dark);
+  white-space:nowrap;flex-shrink:0;
+}
+.history-empty{
+  padding:28px 18px;text-align:center;
+  color:var(--ink-soft);font-size:.82rem;
+}
+.history-empty i{font-size:2rem;display:block;margin-bottom:8px;opacity:.4}
+
+/* ─── Controls ─── */
+.p-controls{
+  display:flex;gap:10px;
+  padding:0 16px;
+  margin-bottom:14px;
+}
+.btn-ctrl{
+  flex:1;padding:13px 16px;
+  border-radius:var(--r-xl);
+  font-size:.85rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  transition:transform .12s,box-shadow .12s;
+  font-family:'Nunito',sans-serif;
+}
+.btn-ctrl:active{transform:scale(.96)}
+.btn-ctrl.green{
+  background:var(--safe);color:#fff;
+  box-shadow:0 4px 16px rgba(0,200,150,.3);
+}
+.btn-ctrl.green:disabled{opacity:.45;pointer-events:none}
+.btn-ctrl.red{
+  background:var(--alert);color:#fff;
+  box-shadow:0 4px 16px rgba(255,96,64,.3);
+}
+.btn-ctrl.red:disabled{opacity:.45;pointer-events:none}
+.btn-ctrl.outline{
+  background:var(--white);color:var(--ink-mid);
+  border:1.5px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════
+   CHILD SCREEN
+═══════════════════════════════════════════ */
+#childScreen{display:none;flex-direction:column;flex:1;padding-bottom:20px}
+
+.c-header{
+  background:linear-gradient(135deg,var(--safe-dark) 0%,var(--safe) 100%);
+  padding:16px 20px 18px;
+  color:var(--white);
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 20px rgba(0,158,120,.2);
+}
+.c-header-top{display:flex;align-items:center;gap:10px}
+.c-header-back{
+  width:36px;height:36px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:.9rem;flex-shrink:0;
+}
+.c-header-back:active{transform:scale(.92)}
+.c-header-brand{flex:1}
+.c-header-brand h2{font-size:1.1rem;font-weight:800;line-height:1}
+.c-header-brand p{font-size:.7rem;opacity:.8;font-family:'Inter',sans-serif;margin-top:2px}
+.c-header .status-pill{background:rgba(255,255,255,.2)}
+
+.c-body{padding:16px}
+
+/* ─── Status hero child ─── */
+.child-status-hero{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  box-shadow:var(--sh-sm);
+  padding:22px 20px;
+  text-align:center;
+  margin-bottom:14px;
+  position:relative;overflow:hidden;
+}
+.child-status-hero::before{
+  content:'';
+  position:absolute;
+  top:-40px;right:-40px;
+  width:140px;height:140px;border-radius:50%;
+  background:rgba(0,200,150,.05);
+}
+.csh-icon-wrap{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,var(--safe-light),#C8FFF0);
+  border:3px solid rgba(0,200,150,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;margin:0 auto 12px;
+  position:relative;
+}
+.csh-icon-wrap::after{
+  content:'';position:absolute;inset:-6px;border-radius:50%;
+  border:2px solid rgba(0,200,150,.2);
+  animation:childPing 2s ease-in-out infinite;
+}
+@keyframes childPing{
+  0%,100%{transform:scale(1);opacity:.8}
+  50%{transform:scale(1.1);opacity:.2}
+}
+.child-status-hero h3{font-size:1.1rem;font-weight:800;color:var(--ink);margin-bottom:4px}
+.child-status-hero p{font-size:.8rem;color:var(--ink-mid);font-family:'Inter',sans-serif;line-height:1.5}
+
+/* ─── Kode input ─── */
+.code-input-card{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  box-shadow:var(--sh-sm);
+  padding:18px 18px;
+  margin-bottom:14px;
+}
+.code-input-card .cic-label{
+  font-size:.75rem;font-weight:700;color:var(--ink-mid);
+  margin-bottom:8px;display:flex;align-items:center;gap:6px;
+}
+.code-input-card .cic-label i{color:var(--safe-dark)}
+.code-row{display:flex;gap:8px}
+.code-input{
+  flex:1;padding:13px 14px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  font-family:'Nunito',sans-serif;font-size:1.3rem;font-weight:800;
+  color:var(--ink);letter-spacing:.12em;text-align:center;
+  outline:none;background:var(--surface);
+  transition:border .2s;text-transform:uppercase;
+}
+.code-input:focus{border-color:var(--safe);background:#fff}
+.code-input.valid{border-color:var(--safe)}
+.code-input.error{border-color:var(--alert)}
+.btn-connect{
+  background:var(--safe);color:#fff;
+  font-size:.88rem;font-weight:800;
+  padding:13px 20px;border-radius:var(--r-sm);
+  display:flex;align-items:center;gap:6px;
+  flex-shrink:0;transition:.15s;
+  font-family:'Nunito',sans-serif;
+}
+.btn-connect:active{transform:scale(.95)}
+.btn-connect:disabled{opacity:.45;pointer-events:none}
+.cic-hint{
+  font-size:.7rem;color:var(--ink-soft);margin-top:8px;
+  font-family:'Inter',sans-serif;text-align:center;
+}
+
+/* ─── Child map ─── */
+#childMap{width:100%;height:240px;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);margin-bottom:14px;border:1.5px solid var(--border)}
+
+/* ─── Sharing toggle ─── */
+.sharing-toggle-card{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  box-shadow:var(--sh-sm);
+  padding:16px 18px;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:14px;
+}
+.stc-icon{
+  width:48px;height:48px;border-radius:14px;
+  background:var(--safe-light);
+  color:var(--safe-dark);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;flex-shrink:0;
+}
+.stc-text{flex:1}
+.stc-text strong{display:block;font-size:.95rem;font-weight:800;color:var(--ink)}
+.stc-text span{font-size:.75rem;color:var(--ink-mid);font-family:'Inter',sans-serif}
+/* toggle switch */
+.toggle-wrap{flex-shrink:0}
+.toggle{position:relative;width:52px;height:28px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{
+  position:absolute;inset:0;border-radius:50px;
+  background:rgba(27,77,142,.15);transition:.3s;cursor:pointer;
+}
+.toggle-track::before{
+  content:'';position:absolute;
+  width:22px;height:22px;border-radius:50%;
+  top:3px;left:3px;background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+  transition:.3s;
+}
+.toggle input:checked+.toggle-track{background:var(--safe)}
+.toggle input:checked+.toggle-track::before{transform:translateX(24px)}
+
+/* ─── Child location info ─── */
+.child-loc-card{
+  background:var(--white);
+  border-radius:var(--r-lg);
+  border:1.5px solid var(--border);
+  box-shadow:var(--sh-sm);
+  padding:16px 18px;
+  margin-bottom:14px;
+}
+.child-loc-card h4{
+  font-size:.88rem;font-weight:800;color:var(--ink);
+  margin-bottom:12px;display:flex;align-items:center;gap:7px;
+}
+.child-loc-card h4 i{color:var(--safe-dark)}
+.loc-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+}
+.loc-item{
+  background:var(--surface);border-radius:var(--r-sm);
+  padding:10px 12px;
+}
+.loc-item .li-label{
+  font-size:.65rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px;
+}
+.loc-item .li-val{
+  font-size:.9rem;font-weight:800;color:var(--ink);
+  font-family:'Nunito',sans-serif;
+}
+
+/* ═══════════════════════════════════════════
+   SAFETY GUIDE (shared)
+═══════════════════════════════════════════ */
+.safety-card{
+  background:linear-gradient(135deg,var(--navy),var(--navy-mid));
+  border-radius:var(--r-lg);
+  padding:18px 20px;
+  color:#fff;
+  margin:0 16px 14px;
+}
+.safety-card h4{font-size:.95rem;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.safety-tips{display:flex;flex-direction:column;gap:7px}
+.safety-tip{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:.78rem;font-family:'Inter',sans-serif;
+  opacity:.9;line-height:1.4;
+}
+.safety-tip i{flex-shrink:0;margin-top:2px;color:var(--sun)}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+#toast{
+  position:fixed;top:72px;left:50%;
+  transform:translateX(-50%) translateY(-8px);
+  background:var(--ink);color:#fff;
+  font-size:.8rem;font-weight:600;font-family:'Inter',sans-serif;
+  padding:10px 20px;border-radius:50px;
+  z-index:9999;pointer-events:none;
+  opacity:0;transition:opacity .3s,transform .3s;
+  white-space:nowrap;box-shadow:var(--sh-md);
+  max-width:90%;text-align:center;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.success{background:var(--safe-dark)}
+#toast.error{background:var(--alert)}
+#toast.warning{background:#B8860B}
+
+/* ═══════════════════════════════════════════
+   JUJUR BANNER (disclaimer)
+═══════════════════════════════════════════ */
+.honest-banner{
+  background:rgba(255,209,102,.15);
+  border:1.5px solid rgba(255,209,102,.4);
+  border-radius:var(--r-md);
+  padding:12px 14px;
+  margin:0 0 14px;
+  font-size:.75rem;color:var(--ink-mid);
+  line-height:1.5;font-family:'Inter',sans-serif;
+  display:flex;gap:8px;align-items:flex-start;
+}
+.honest-banner i{color:#B8860B;flex-shrink:0;margin-top:2px}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:400px){
+  .mode-brand h1{font-size:1.7rem}
+  .stats-row{grid-template-columns:1fr 1fr 1fr}
+  .stat-box .sb-val{font-size:.85rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
 </head>
-
 <body>
-    <div id="app">
 
-        <!-- ===== HEADER ===== -->
-        <header class="app-header animate-in">
-            <div class="header-top">
-                <div class="header-left">
-                    <span class="header-icon">👶</span>
-                    <h1 class="header-title">Safe<span>Track</span></h1>
-                </div>
-                <span class="header-badge"><i class="fas fa-shield-alt"></i> &nbsp;Aman</span>
-            </div>
-            <div class="header-sub">
-                <i class="fas fa-map-pin"></i> Pantau lokasi anak Anda secara real-time
-                <span class="tracked-number" id="trackedNumberDisplay">Belum ada</span>
-            </div>
-        </header>
+<div id="app">
 
-        <!-- ===== PHONE INPUT ===== -->
-        <div class="input-card animate-in delay-1">
-            <div class="icon-wrap">
-                <i class="fas fa-phone-alt"></i>
-            </div>
-            <input type="tel" id="phoneInput" placeholder="Masukkan nomor HP anak" maxlength="15" />
-            <button class="btn-track" id="trackBtn">
-                <i class="fas fa-search"></i> Lacak
-            </button>
-        </div>
+<!-- ═══════════════════════════════
+     SCREEN 0: MODE SELECTOR
+═══════════════════════════════ -->
+<div id="modeScreen">
+  <div class="mode-brand">
+    <div class="brand-icon">🛡️</div>
+    <h1>Safe<span>Track</span></h1>
+    <p>Pantau lokasi anak — aman, mudah, terpercaya</p>
+  </div>
 
-        <!-- ===== STATUS BAR ===== -->
-        <div class="status-bar animate-in delay-2">
-            <div class="status-item">
-                <div class="stat-icon green"><i class="fas fa-wifi"></i></div>
-                <div class="stat-info">
-                    <div class="stat-label">Provider</div>
-                    <div class="stat-value" id="providerDisplay">—</div>
-                </div>
-            </div>
-            <div class="status-item">
-                <div class="stat-icon purple"><i class="fas fa-microchip"></i></div>
-                <div class="stat-info">
-                    <div class="stat-label">IMEI</div>
-                    <div class="stat-value" id="imeiDisplay">—</div>
-                </div>
-            </div>
-            <div class="status-item">
-                <div class="stat-icon blue"><i class="fas fa-satellite-dish"></i></div>
-                <div class="stat-info">
-                    <div class="stat-label">Status</div>
-                    <div class="stat-value" id="statusDisplay">
-                        <span class="highlight">● Siap</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="mode-label">Pilih peran Anda</div>
 
-        <!-- ===== MAP ===== -->
-        <div class="map-wrapper animate-in delay-3">
-            <div id="map"></div>
-            <div class="map-overlay">
-                <span class="dot"></span>
-                <span id="mapStatus">Lokasi real-time</span>
-            </div>
-        </div>
+  <div class="mode-cards">
+    <div class="mode-card parent" onclick="enterMode('parent')">
+      <div class="mc-icon"><i class="fas fa-eye"></i></div>
+      <div class="mc-text">
+        <h3>Saya Orang Tua</h3>
+        <p>Pantau posisi anak secara real-time dari HP Anda. Buat kode sesi dan bagikan ke anak.</p>
+      </div>
+      <i class="fas fa-chevron-right mc-arrow"></i>
+    </div>
+    <div class="mode-card child" onclick="enterMode('child')">
+      <div class="mc-icon"><i class="fas fa-child"></i></div>
+      <div class="mc-text">
+        <h3>Saya Anak / Dijaga</h3>
+        <p>Aktifkan berbagi lokasi agar orang tua bisa melihat posisi Anda secara langsung.</p>
+      </div>
+      <i class="fas fa-chevron-right mc-arrow"></i>
+    </div>
+  </div>
 
-        <!-- ===== LOCATION DETAILS ===== -->
-        <div class="detail-grid animate-in delay-4">
-            <div class="detail-card accent-coral">
-                <div class="label"><i class="fas fa-arrow-up"></i> Latitude</div>
-                <div class="value" id="latDisplay">—</div>
-            </div>
-            <div class="detail-card accent-teal">
-                <div class="label"><i class="fas fa-arrow-right"></i> Longitude</div>
-                <div class="value" id="lngDisplay">—</div>
-            </div>
-            <div class="detail-card accent-sunny">
-                <div class="label"><i class="fas fa-bullseye"></i> Akurasi</div>
-                <div class="value" id="accDisplay">—</div>
-            </div>
-            <div class="detail-card accent-purple">
-                <div class="label"><i class="fas fa-clock"></i> Terakhir</div>
-                <div class="value" id="timeDisplay">—</div>
-            </div>
-        </div>
+  <div class="mode-note">
+    <i class="fas fa-info-circle"></i>
+    <span><strong>Bagaimana ini bekerja?</strong> Orang tua membuat kode sesi lalu berbagi ke anak. Anak memasukkan kode tersebut lalu mengaktifkan berbagi lokasi. Posisi anak akan terlihat di peta orang tua secara real-time.</span>
+  </div>
+</div>
 
-        <!-- ===== HISTORY ===== -->
-        <div class="history-section animate-in delay-5">
-            <div class="history-header">
-                <h3><i class="fas fa-history"></i> Riwayat Lokasi</h3>
-                <div class="actions">
-                    <span class="count" id="historyCount">0</span>
-                    <button class="btn-clear" id="clearHistoryBtn"><i class="fas fa-trash-alt"></i> Hapus</button>
-                </div>
-            </div>
-            <div class="history-list" id="historyList">
-                <div class="history-empty">
-                    <i class="fas fa-map-marker-alt"></i>
-                    Belum ada riwayat. Mulai pantau untuk mencatat lokasi.
-                </div>
-            </div>
-        </div>
+<!-- ═══════════════════════════════
+     SCREEN 1: PARENT MODE
+═══════════════════════════════ -->
+<div id="parentScreen">
 
-        <!-- ===== CONTROLS ===== -->
-        <div class="controls animate-in delay-5">
-            <button class="btn btn-primary" id="startBtn">
-                <i class="fas fa-play"></i> Mulai Pantau
-            </button>
-            <button class="btn btn-danger" id="stopBtn" disabled>
-                <i class="fas fa-stop"></i> Hentikan
-            </button>
-            <button class="btn btn-outline" id="refreshBtn">
-                <i class="fas fa-sync-alt"></i> Refresh
-            </button>
-        </div>
+  <div class="p-header">
+    <div class="p-header-top">
+      <button class="p-header-back" onclick="backToMode()"><i class="fas fa-chevron-left"></i></button>
+      <div class="p-header-brand">
+        <h2>🛡️ SafeTrack – Pantau</h2>
+        <p>Mode Orang Tua · Sesi aktif</p>
+      </div>
+      <div class="status-pill" id="parentStatusPill">
+        <div class="sp-dot" id="parentDot"></div>
+        <span id="parentStatusText">Menunggu</span>
+      </div>
+    </div>
+  </div>
 
-        <!-- ===== FOOTER ===== -->
-        <div class="app-footer">
-            <i class="fas fa-heart"></i> SafeTrack &bull; Lindungi buah hati Anda
-            <div class="tech-note">
-                <i class="fas fa-satellite"></i> Menggunakan GPS perangkat &bull; Simulasi HLR/VLR
-            </div>
-        </div>
+  <div class="p-body">
 
-        <!-- ===== TOAST ===== -->
-        <div class="toast" id="toast"></div>
+    <!-- Cara pakai -->
+    <div class="honest-banner">
+      <i class="fas fa-lightbulb"></i>
+      <span><strong>Cara pakai:</strong> Bagikan kode sesi di bawah ke HP anak. Anak buka SafeTrack → pilih "Saya Anak" → masukkan kode → aktifkan berbagi. Posisi anak akan tampil di peta ini.</span>
     </div>
 
-    <script>
-        // ================================================================
-        //  SAFETRACK — FULL APPLICATION LOGIC (Dengan fitur reset & hapus riwayat)
-        // ================================================================
+    <!-- Kode sesi -->
+    <div class="link-card">
+      <div class="link-card-head">
+        <div class="lch-icon" style="background:var(--navy-light);color:var(--navy)"><i class="fas fa-key"></i></div>
+        <div>
+          <h3>Kode Sesi</h3>
+          <p>Bagikan kode ini ke HP anak — berlaku selama sesi ini</p>
+        </div>
+      </div>
+      <div class="link-card-body">
+        <div class="session-code-wrap">
+          <i class="fas fa-qrcode sc-icon"></i>
+          <div class="sc-info">
+            <div class="sc-label">Kode Unik Sesi</div>
+            <div class="sc-val" id="sessionCodeDisplay">——</div>
+          </div>
+          <button class="btn-copy" onclick="copyCode()">
+            <i class="fas fa-copy"></i> Salin
+          </button>
+        </div>
 
-        (function() {
-            'use strict';
+        <div class="link-share-row">
+          <div class="link-display" id="shareLinkDisplay">Membuat tautan...</div>
+          <button class="btn-share" onclick="shareLink()">
+            <i class="fas fa-share-alt"></i> Bagikan
+          </button>
+        </div>
 
-            // ---- DOM refs ----
-            const phoneInput = document.getElementById('phoneInput');
-            const trackBtn = document.getElementById('trackBtn');
-            const startBtn = document.getElementById('startBtn');
-            const stopBtn = document.getElementById('stopBtn');
-            const refreshBtn = document.getElementById('refreshBtn');
-            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-            const providerDisplay = document.getElementById('providerDisplay');
-            const imeiDisplay = document.getElementById('imeiDisplay');
-            const statusDisplay = document.getElementById('statusDisplay');
-            const latDisplay = document.getElementById('latDisplay');
-            const lngDisplay = document.getElementById('lngDisplay');
-            const accDisplay = document.getElementById('accDisplay');
-            const timeDisplay = document.getElementById('timeDisplay');
-            const historyList = document.getElementById('historyList');
-            const historyCount = document.getElementById('historyCount');
-            const mapStatus = document.getElementById('mapStatus');
-            const trackedNumberDisplay = document.getElementById('trackedNumberDisplay');
-            const toast = document.getElementById('toast');
+        <button class="btn-ctrl outline" style="width:100%;font-size:.8rem;border-radius:var(--r-sm);padding:10px" onclick="regenerateCode()">
+          <i class="fas fa-rotate"></i> Buat Kode Baru
+        </button>
+      </div>
+    </div>
 
-            // ---- State ----
-            let watchId = null;
-            let isTracking = false;
-            let history = [];
-            let currentPosition = null;
-            let map = null;
-            let marker = null;
-            let circle = null;
-            let currentPhoneNumber = '';
+    <!-- Peta -->
+    <div class="map-card">
+      <div id="parentMap"></div>
+      <!-- Signature: Radar Overlay -->
+      <div class="radar-overlay">
+        <div class="radar-pulse">
+          <div class="radar-ring"></div>
+          <div class="radar-ring"></div>
+          <div class="radar-ring"></div>
+          <div class="radar-center"></div>
+        </div>
+      </div>
+      <div class="radar-label offline" id="parentMapLabel">
+        <div class="rl-dot"></div>
+        <span id="parentMapLabelText">Menunggu anak terhubung</span>
+      </div>
+    </div>
 
-            // ---- Mock data (simulasi provider & IMEI) ----
-            const PROVIDERS = ['Telkomsel', 'Indosat', 'XL Axiata', 'Smartfren', 'Three', 'By.U'];
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="sb-icon">📍</div>
+        <span class="sb-val" id="statAkurasi">—</span>
+        <div class="sb-label">Akurasi</div>
+      </div>
+      <div class="stat-box">
+        <div class="sb-icon">🕒</div>
+        <span class="sb-val" id="statUpdate">—</span>
+        <div class="sb-label">Update</div>
+      </div>
+      <div class="stat-box">
+        <div class="sb-icon">🔗</div>
+        <span class="sb-val" id="statAnakStatus">Offline</span>
+        <div class="sb-label">Status Anak</div>
+      </div>
+    </div>
 
-            function generateIMEI() {
-                const base = '35' + String(Math.floor(Math.random() * 1000000000000)).padStart(12, '0');
-                let sum = 0;
-                let alternate = true;
-                for (let i = base.length - 1; i >= 0; i--) {
-                    let n = parseInt(base[i], 10);
-                    if (alternate) {
-                        n *= 2;
-                        if (n > 9) n -= 9;
-                    }
-                    sum += n;
-                    alternate = !alternate;
-                }
-                const check = (10 - (sum % 10)) % 10;
-                return base + check;
-            }
+    <!-- History -->
+    <div class="history-card">
+      <div class="history-card-head">
+        <h3><i class="fas fa-route"></i> Riwayat Lokasi</h3>
+        <span class="history-badge" id="parentHistCount">0</span>
+      </div>
+      <div class="history-scroll" id="parentHistList">
+        <div class="history-empty">
+          <i class="fas fa-map-marker-alt"></i>
+          Riwayat kosong. Posisi anak akan tercatat di sini.
+        </div>
+      </div>
+    </div>
 
-            const mockIMEI = generateIMEI();
+  </div><!-- /p-body -->
 
-            function getRandomProvider() {
-                return PROVIDERS[Math.floor(Math.random() * PROVIDERS.length)];
-            }
+  <!-- Controls -->
+  <div class="p-controls">
+    <button class="btn-ctrl outline" onclick="clearHistory()">
+      <i class="fas fa-trash-alt"></i> Hapus Riwayat
+    </button>
+    <button class="btn-ctrl outline" onclick="centerMap()">
+      <i class="fas fa-crosshairs"></i> Tengahkan Peta
+    </button>
+  </div>
 
-            // ---- Toast ----
-            let toastTimer = null;
+  <!-- Safety guide -->
+  <div class="safety-card" style="margin:0 16px 20px">
+    <h4><i class="fas fa-shield-alt"></i> Tips Keamanan Orang Tua</h4>
+    <div class="safety-tips">
+      <div class="safety-tip"><i class="fas fa-check-circle"></i><span>Bicarakan dengan anak bahwa pelacakan ini untuk keselamatan, bukan pengawasan berlebihan.</span></div>
+      <div class="safety-tip"><i class="fas fa-check-circle"></i><span>Buat aturan bersama kapan lokasi boleh dimatikan (mis. di rumah teman yang sudah dikenal).</span></div>
+      <div class="safety-tip"><i class="fas fa-check-circle"></i><span>Tetap prioritaskan komunikasi langsung — pelacakan adalah jaring pengaman, bukan pengganti kepercayaan.</span></div>
+    </div>
+  </div>
 
-            function showToast(message, type = 'info', duration = 3000) {
-                if (toastTimer) {
-                    clearTimeout(toastTimer);
-                    toast.classList.remove('show');
-                }
-                toast.textContent = message;
-                toast.className = 'toast';
-                if (type === 'success') toast.classList.add('success');
-                else if (type === 'error') toast.classList.add('error');
-                else if (type === 'warning') toast.classList.add('warning');
-                void toast.offsetWidth;
-                toast.classList.add('show');
-                toastTimer = setTimeout(() => {
-                    toast.classList.remove('show');
-                }, duration);
-            }
+</div><!-- /parentScreen -->
 
-            // ---- Format waktu ----
-            function formatTime(ts) {
-                const d = new Date(ts);
-                return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            }
 
-            function formatDate(ts) {
-                const d = new Date(ts);
-                return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-            }
+<!-- ═══════════════════════════════
+     SCREEN 2: CHILD MODE
+═══════════════════════════════ -->
+<div id="childScreen">
 
-            function formatFullTime(ts) {
-                return formatDate(ts) + ' ' + formatTime(ts);
-            }
+  <div class="c-header">
+    <div class="c-header-top">
+      <button class="c-header-back" onclick="backToMode()"><i class="fas fa-chevron-left"></i></button>
+      <div class="c-header-brand">
+        <h2>👶 SafeTrack – Berbagi</h2>
+        <p>Mode Anak · Bagikan lokasi Anda</p>
+      </div>
+      <div class="status-pill" id="childStatusPill">
+        <div class="sp-dot" id="childDot"></div>
+        <span id="childStatusText">Siap</span>
+      </div>
+    </div>
+  </div>
 
-            // ---- Update UI dengan posisi ----
-            function updatePositionUI(pos) {
-                if (!pos) return;
-                const { latitude, longitude, accuracy } = pos.coords;
-                const timestamp = pos.timestamp;
+  <div class="c-body">
 
-                currentPosition = pos;
+    <!-- Status hero -->
+    <div class="child-status-hero">
+      <div class="csh-icon-wrap" id="childHeroIcon">🏠</div>
+      <h3 id="childHeroTitle">Masukkan Kode Sesi</h3>
+      <p id="childHeroSub">Minta kode dari orang tua, lalu masukkan di bawah untuk mulai berbagi lokasi.</p>
+    </div>
 
-                latDisplay.textContent = latitude.toFixed(6);
-                lngDisplay.textContent = longitude.toFixed(6);
-                accDisplay.textContent = accuracy ? accuracy.toFixed(0) + ' m' : '—';
-                timeDisplay.textContent = formatFullTime(timestamp);
+    <!-- Input kode -->
+    <div class="code-input-card">
+      <div class="cic-label"><i class="fas fa-key"></i> Kode Sesi dari Orang Tua</div>
+      <div class="code-row">
+        <input class="code-input" type="text" id="codeInput"
+          maxlength="6" placeholder="ABC123"
+          autocomplete="off" spellcheck="false"/>
+        <button class="btn-connect" id="btnConnect" onclick="connectToParent()">
+          <i class="fas fa-link"></i> Sambung
+        </button>
+      </div>
+      <div class="cic-hint" id="codeHint">Masukkan 6 karakter kode yang diberikan orang tua</div>
+    </div>
 
-                if (map && marker) {
-                    const latlng = [latitude, longitude];
-                    marker.setLatLng(latlng);
-                    if (circle) {
-                        circle.setLatLng(latlng);
-                        if (accuracy) {
-                            circle.setRadius(accuracy);
-                        }
-                    }
-                    map.setView(latlng, 16, { animate: true });
-                }
+    <!-- Peta anak -->
+    <div id="childMap"></div>
 
-                statusDisplay.innerHTML = `<span class="highlight">● Terpantau</span>`;
-                mapStatus.textContent = 'Lokasi terkini';
+    <!-- Toggle berbagi -->
+    <div class="sharing-toggle-card">
+      <div class="stc-icon" id="toggleIcon"><i class="fas fa-location-arrow"></i></div>
+      <div class="stc-text">
+        <strong id="toggleTitle">Berbagi Lokasi</strong>
+        <span id="toggleSub">Aktifkan agar orang tua bisa melihat posisi Anda</span>
+      </div>
+      <div class="toggle-wrap">
+        <label class="toggle">
+          <input type="checkbox" id="shareToggle" onchange="toggleSharing()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+    </div>
 
-                addHistory(latitude, longitude, accuracy, timestamp);
-            }
+    <!-- Info lokasi anak -->
+    <div class="child-loc-card">
+      <h4><i class="fas fa-map-marker-alt"></i> Posisi Saya Saat Ini</h4>
+      <div class="loc-grid">
+        <div class="loc-item">
+          <div class="li-label">Latitude</div>
+          <div class="li-val" id="childLat">—</div>
+        </div>
+        <div class="loc-item">
+          <div class="li-label">Longitude</div>
+          <div class="li-val" id="childLng">—</div>
+        </div>
+        <div class="loc-item">
+          <div class="li-label">Akurasi</div>
+          <div class="li-val" id="childAcc">—</div>
+        </div>
+        <div class="loc-item">
+          <div class="li-label">Diperbarui</div>
+          <div class="li-val" id="childTime">—</div>
+        </div>
+      </div>
+    </div>
 
-            // ---- History ----
-            function addHistory(lat, lng, acc, ts) {
-                const entry = {
-                    lat: lat,
-                    lng: lng,
-                    acc: acc,
-                    time: ts,
-                    formatted: formatFullTime(ts)
-                };
-                history.push(entry);
-                if (history.length > 50) history.shift();
-                renderHistory();
-            }
+    <!-- Safety tips untuk anak -->
+    <div class="safety-card" style="margin:0 0 14px">
+      <h4><i class="fas fa-heart"></i> Tips Aman untuk Kamu</h4>
+      <div class="safety-tips">
+        <div class="safety-tip"><i class="fas fa-star"></i><span>Kamu bisa mematikan berbagi kapan saja dengan menekan tombol hijau di atas.</span></div>
+        <div class="safety-tip"><i class="fas fa-star"></i><span>Jika merasa tidak aman, segera hubungi orang tua atau orang dewasa yang dipercaya.</span></div>
+        <div class="safety-tip"><i class="fas fa-star"></i><span>Lokasi hanya dibagikan ke satu sesi orang tua yang memiliki kode yang sama.</span></div>
+      </div>
+    </div>
 
-            function renderHistory() {
-                historyCount.textContent = history.length;
+  </div><!-- /c-body -->
+</div><!-- /childScreen -->
 
-                if (history.length === 0) {
-                    historyList.innerHTML = `
-                        <div class="history-empty">
-                            <i class="fas fa-map-marker-alt"></i>
-                            Belum ada riwayat. Mulai pantau untuk mencatat lokasi.
-                        </div>
-                    `;
-                    return;
-                }
+</div><!-- /app -->
 
-                let html = '';
-                const reversed = [...history].reverse();
-                for (const item of reversed) {
-                    const statusIcon = item.acc && item.acc < 50 ? '✅' : '📍';
-                    html += `
-                        <div class="history-item">
-                            <span class="h-time">${item.formatted}</span>
-                            <span class="h-coord">${item.lat.toFixed(5)}, ${item.lng.toFixed(5)}</span>
-                            <span class="h-status">${statusIcon}</span>
-                        </div>
-                    `;
-                }
-                historyList.innerHTML = html;
-            }
+<!-- TOAST -->
+<div id="toast"></div>
 
-            function clearHistory() {
-                history = [];
-                renderHistory();
-                showToast('🗑️ Riwayat berhasil dihapus.', 'info', 1500);
-            }
+<script>
+'use strict';
+/* ══════════════════════════════════════════════════
+   SAFETRACK — COMPLETE APPLICATION LOGIC
+   
+   ARSITEKTUR JUJUR:
+   Karena ini adalah static HTML (tanpa server/backend),
+   komunikasi Parent↔Child berjalan melalui localStorage
+   yang dishare di browser yang SAMA (atau simulasi).
+   
+   Untuk deployment produksi multi-device sungguhan,
+   ganti layer "channel" di bawah dengan:
+   - Firebase Realtime Database, atau
+   - Supabase Realtime, atau
+   - WebSocket server sederhana (Node.js/Deno)
+   
+   Semua interface sudah didesain agar penggantian
+   channel tidak mengubah UI sama sekali.
+══════════════════════════════════════════════════ */
 
-            // ---- Geolocation ----
-            function startTracking() {
-                if (isTracking) {
-                    // Jika sudah tracking, restart dengan nomor baru
-                    stopTracking();
-                    // tunggu sebentar lalu mulai ulang
-                    setTimeout(() => {
-                        startTracking();
-                    }, 300);
-                    return;
-                }
+/* ═══ CONSTANTS ═══ */
+const CODE_CHARS    = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // tanpa O,0,1,I (mirip)
+const POLL_INTERVAL = 3000; // ms — polling interval parent
+const CHANNEL_KEY   = 'safetrack_channel_';
 
-                if (!navigator.geolocation) {
-                    showToast('❌ Browser tidak mendukung geolokasi.', 'error');
-                    return;
-                }
+/* ═══ STATE ═══ */
+const app = {
+  mode:          null,        // 'parent' | 'child'
+  sessionCode:   null,
+  parentMap:     null,
+  parentMarker:  null,
+  parentCircle:  null,
+  childMap:      null,
+  childMarker:   null,
+  watchId:       null,
+  pollTimer:     null,
+  history:       [],
+  childPosition: null,
+  isSharing:     false,
+  connectedCode: null,        // kode yang diinput anak
+  lastChildPos:  null,
+};
 
-                // Ambil nomor dari input
-                const phone = phoneInput.value.trim();
-                if (phone) {
-                    currentPhoneNumber = phone;
-                    trackedNumberDisplay.textContent = phone;
-                } else {
-                    trackedNumberDisplay.textContent = 'Tidak ada nomor';
-                }
+/* ═══ TOAST ═══ */
+let _toastTimer = null;
+function showToast(msg, type='info', dur=3000) {
+  const t = document.getElementById('toast');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  t.textContent = msg;
+  t.className = 'toast ' + (type !== 'info' ? type : '');
+  void t.offsetWidth;
+  t.classList.add('show');
+  _toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+}
 
-                // Set provider & IMEI (simulasi)
-                providerDisplay.textContent = getRandomProvider();
-                imeiDisplay.textContent = mockIMEI;
+/* ═══ UTILS ═══ */
+function makeCode(len=6) {
+  return Array.from({length:len}, () =>
+    CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]
+  ).join('');
+}
 
-                statusDisplay.innerHTML = `<span class="highlight">⏳ Mengambil lokasi...</span>`;
-                mapStatus.textContent = 'Mencari sinyal...';
-                showToast('📡 Mengakses lokasi perangkat...', 'info', 2000);
+function fmt(d, full=false) {
+  const now = new Date(d);
+  if (full) return now.toLocaleDateString('id-ID',{day:'2-digit',month:'short'}) + ' ' +
+                    now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  return now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
 
-                const geoOptions = {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 5000
-                };
+function channelKey(code) { return CHANNEL_KEY + code.toUpperCase(); }
 
-                watchId = navigator.geolocation.watchPosition(
-                    (pos) => {
-                        updatePositionUI(pos);
-                        if (!isTracking) {
-                            isTracking = true;
-                            updateButtons();
-                            showToast('✅ Pelacakan real-time aktif!', 'success');
-                        }
-                    },
-                    (err) => {
-                        console.error('Geolocation error:', err);
-                        let msg = '❌ Gagal mengakses lokasi. ';
-                        switch (err.code) {
-                            case err.PERMISSION_DENIED:
-                                msg += 'Izin lokasi ditolak. Aktifkan di pengaturan perangkat.';
-                                break;
-                            case err.POSITION_UNAVAILABLE:
-                                msg += 'Sinyal GPS tidak tersedia. Coba di luar ruangan.';
-                                break;
-                            case err.TIMEOUT:
-                                msg += 'Waktu habis. Coba lagi.';
-                                break;
-                            default:
-                                msg += err.message || 'Error tidak diketahui.';
-                        }
-                        showToast(msg, 'error', 4000);
-                        statusDisplay.innerHTML = `<span style="color:var(--coral);">● Gagal</span>`;
-                        mapStatus.textContent = '⛔ Tidak tersedia';
-                        stopTracking();
-                    },
-                    geoOptions
-                );
+/* ═══════════════════════════════════════
+   CHANNEL LAYER
+   Write / Read posisi via localStorage.
+   Swap this with WebSocket/Firebase for multi-device.
+═══════════════════════════════════════ */
+function writeChildPos(code, pos) {
+  const data = {
+    lat:  pos.coords.latitude,
+    lng:  pos.coords.longitude,
+    acc:  pos.coords.accuracy,
+    ts:   Date.now(),
+    alive: true,
+  };
+  try { localStorage.setItem(channelKey(code), JSON.stringify(data)); }
+  catch(e) { /* storage full or unavailable */ }
+}
 
-                // timeout fallback
-                setTimeout(() => {
-                    if (!isTracking && watchId !== null) {
-                        // masih mencoba
-                    }
-                }, 3000);
-            }
+function readChildPos(code) {
+  try {
+    const raw = localStorage.getItem(channelKey(code));
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
 
-            function stopTracking() {
-                if (watchId !== null) {
-                    navigator.geolocation.clearWatch(watchId);
-                    watchId = null;
-                }
-                isTracking = false;
-                updateButtons();
-                statusDisplay.innerHTML = `<span style="color:var(--gray);">● Berhenti</span>`;
-                mapStatus.textContent = 'Pelacakan dihentikan';
-                showToast('⏹️ Pelacakan dihentikan.', 'info', 1500);
-            }
+function clearChannel(code) {
+  try { localStorage.removeItem(channelKey(code)); }
+  catch(e) {}
+}
 
-            function refreshLocation() {
-                if (isTracking) {
-                    showToast('🔄 Memperbarui lokasi...', 'info', 1000);
-                    stopTracking();
-                    setTimeout(() => {
-                        startTracking();
-                    }, 400);
-                } else {
-                    showToast('⚠️ Mulai pelacakan terlebih dahulu.', 'warning');
-                }
-            }
+/* ═══════════════════════════════════════
+   MODE SELECTION
+═══════════════════════════════════════ */
+function enterMode(mode) {
+  document.getElementById('modeScreen').style.display  = 'none';
+  if (mode === 'parent') {
+    document.getElementById('parentScreen').style.display = 'flex';
+    initParent();
+  } else {
+    document.getElementById('childScreen').style.display  = 'flex';
+    initChild();
+  }
+  app.mode = mode;
+}
 
-            function resetTracking() {
-                stopTracking();
-                clearHistory();
-                // Reset tampilan koordinat
-                latDisplay.textContent = '—';
-                lngDisplay.textContent = '—';
-                accDisplay.textContent = '—';
-                timeDisplay.textContent = '—';
-                trackedNumberDisplay.textContent = 'Belum ada';
-                currentPhoneNumber = '';
-                // Kosongkan input
-                phoneInput.value = '';
-                // Reset peta ke default
-                if (map) {
-                    map.setView([-6.2088, 106.8456], 14);
-                    if (marker) {
-                        marker.setLatLng([-6.2088, 106.8456]);
-                    }
-                    if (circle) {
-                        circle.setLatLng([-6.2088, 106.8456]);
-                        circle.setRadius(50);
-                    }
-                }
-                showToast('🔄 Reset selesai. Masukkan nomor baru.', 'info', 2000);
-            }
+function backToMode() {
+  // cleanup
+  if (app.watchId)   { navigator.geolocation.clearWatch(app.watchId); app.watchId = null; }
+  if (app.pollTimer) { clearInterval(app.pollTimer); app.pollTimer = null; }
+  if (app.connectedCode) { clearChannel(app.connectedCode); }
+  app.isSharing = false;
+  document.getElementById('shareToggle').checked = false;
 
-            function updateButtons() {
-                if (isTracking) {
-                    startBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    trackBtn.disabled = true;
-                    startBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Memantau`;
-                } else {
-                    startBtn.disabled = false;
-                    stopBtn.disabled = true;
-                    trackBtn.disabled = false;
-                    startBtn.innerHTML = `<i class="fas fa-play"></i> Mulai Pantau`;
-                }
-            }
+  document.getElementById('parentScreen').style.display = 'none';
+  document.getElementById('childScreen').style.display  = 'none';
+  document.getElementById('modeScreen').style.display   = 'flex';
+}
 
-            // ---- Inisialisasi Map ----
-            function initMap() {
-                const mapContainer = document.getElementById('map');
-                const defaultCenter = [-6.2088, 106.8456]; // Jakarta
+/* ═══════════════════════════════════════
+   PARENT MODE
+═══════════════════════════════════════ */
+function initParent() {
+  app.sessionCode = makeCode();
+  renderSessionCode();
+  initParentMap();
+  startParentPolling();
+}
 
-                map = L.map(mapContainer, {
-                    center: defaultCenter,
-                    zoom: 14,
-                    zoomControl: false,
-                    attributionControl: true
-                });
+function renderSessionCode() {
+  document.getElementById('sessionCodeDisplay').textContent = app.sessionCode;
+  // Buat link yang menyertakan kode (deep-link simulasi)
+  const base = window.location.href.split('?')[0];
+  const link = base + '?mode=child&code=' + app.sessionCode;
+  document.getElementById('shareLinkDisplay').textContent = link;
+  app.shareLink = link;
+}
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
-                }).addTo(map);
+function copyCode() {
+  navigator.clipboard.writeText(app.sessionCode).then(() => {
+    showToast('✅ Kode ' + app.sessionCode + ' disalin!', 'success');
+  }).catch(() => {
+    showToast('Kode: ' + app.sessionCode, 'info', 4000);
+  });
+}
 
-                L.control.zoom({
-                    position: 'bottomright'
-                }).addTo(map);
+function shareLink() {
+  const text = 'Buka SafeTrack dan masukkan kode: *' + app.sessionCode + '*\n' + app.shareLink;
+  if (navigator.share) {
+    navigator.share({ title:'Kode SafeTrack', text: text, url: app.shareLink })
+      .catch(() => {});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('✅ Tautan disalin ke clipboard!', 'success');
+    });
+  } else {
+    showToast('Kode: ' + app.sessionCode, 'info', 5000);
+  }
+}
 
-                const iconHtml = `
-                    <div style="
-                        background: #4ECDC4;
-                        width: 42px;
-                        height: 42px;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 22px;
-                        border: 3px solid white;
-                        box-shadow: 0 4px 16px rgba(78,205,196,0.5);
-                        transform: translate(-50%, -50%);
-                    ">
-                        👶
-                    </div>
-                `;
-                const customIcon = L.divIcon({
-                    html: iconHtml,
-                    className: '',
-                    iconSize: [42, 42],
-                    iconAnchor: [21, 21]
-                });
+function regenerateCode() {
+  clearChannel(app.sessionCode);
+  clearInterval(app.pollTimer);
+  app.history = [];
+  renderHistory([]);
+  setParentStatus('waiting');
+  app.sessionCode = makeCode();
+  renderSessionCode();
+  startParentPolling();
+  showToast('🔄 Kode baru dibuat: ' + app.sessionCode, 'info');
+}
 
-                marker = L.marker(defaultCenter, {
-                    icon: customIcon,
-                    draggable: false
-                }).addTo(map);
+function initParentMap() {
+  if (app.parentMap) return;
+  const center = [-6.2088, 106.8456];
+  const m = L.map('parentMap', {zoomControl:false, attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19
+  }).addTo(m);
+  L.control.zoom({position:'bottomright'}).addTo(m);
+  m.setView(center, 13);
 
-                circle = L.circle(defaultCenter, {
-                    radius: 50,
-                    color: '#4ECDC4',
-                    fillColor: '#4ECDC4',
-                    fillOpacity: 0.15,
-                    weight: 2,
-                    opacity: 0.7
-                }).addTo(map);
+  const icon = L.divIcon({
+    html:`<div style="
+      width:44px;height:44px;border-radius:50%;
+      background:linear-gradient(135deg,#1B4D8E,#2563C0);
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;border:3px solid white;
+      box-shadow:0 4px 16px rgba(27,77,142,.5);
+      transform:translate(-50%,-50%);
+    ">👶</div>`,
+    className:'',iconSize:[44,44],iconAnchor:[22,22]
+  });
 
-                map.on('click', function(e) {
-                    showToast(`📍 ${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`, 'info', 2000);
-                });
+  app.parentMarker = L.marker(center,{icon}).addTo(m);
+  app.parentCircle = L.circle(center,{
+    radius:100,
+    color:'#00C896',fillColor:'#00C896',
+    fillOpacity:.12,weight:2,opacity:.6
+  }).addTo(m);
 
-                setTimeout(() => {
-                    map.invalidateSize();
-                }, 400);
+  app.parentMap = m;
+  setTimeout(()=>m.invalidateSize(),400);
+}
 
-                // Coba dapatkan posisi awal
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => {
-                            const { latitude, longitude } = pos.coords;
-                            const latlng = [latitude, longitude];
-                            map.setView(latlng, 15);
-                            marker.setLatLng(latlng);
-                            circle.setLatLng(latlng);
-                            if (pos.coords.accuracy) {
-                                circle.setRadius(pos.coords.accuracy);
-                            }
-                            updatePositionUI(pos);
-                            providerDisplay.textContent = getRandomProvider();
-                            imeiDisplay.textContent = mockIMEI;
-                            statusDisplay.innerHTML = `<span class="highlight">● Siap</span>`;
-                        },
-                        () => {
-                            showToast('📍 Gunakan default Jakarta. Aktifkan GPS untuk akurasi.', 'warning', 3000);
-                        }, { enableHighAccuracy: true, timeout: 8000 }
-                    );
-                }
-            }
+function setParentStatus(status, data) {
+  const dot   = document.getElementById('parentDot');
+  const label = document.getElementById('parentMapLabel');
+  const ltxt  = document.getElementById('parentMapLabelText');
+  const ptxt  = document.getElementById('parentStatusText');
+  const anakEl= document.getElementById('statAnakStatus');
 
-            // ---- Event Handlers ----
-            trackBtn.addEventListener('click', function() {
-                const phone = phoneInput.value.trim();
-                if (!phone) {
-                    showToast('📱 Masukkan nomor HP terlebih dahulu.', 'warning');
-                    phoneInput.focus();
-                    return;
-                }
-                if (phone.length < 8) {
-                    showToast('⚠️ Nomor HP tidak valid (minimal 8 digit).', 'warning');
-                    return;
-                }
+  if (status === 'waiting') {
+    dot.classList.remove('active');
+    label.className = 'radar-label offline';
+    ltxt.textContent = 'Menunggu anak terhubung';
+    ptxt.textContent = 'Menunggu';
+    anakEl.textContent = 'Offline';
+  } else if (status === 'live') {
+    dot.classList.add('active');
+    label.className = 'radar-label';
+    ltxt.textContent = 'Lokasi real-time · ' + fmt(data.ts);
+    ptxt.textContent = 'Live';
+    anakEl.textContent = 'Online';
+  } else if (status === 'stale') {
+    dot.classList.remove('active');
+    label.className = 'radar-label offline';
+    ltxt.textContent = 'Sinyal terakhir: ' + fmt(data.ts);
+    ptxt.textContent = 'Lambat';
+    anakEl.textContent = 'Lambat';
+  }
+}
 
-                // Jika nomor berbeda dan tracking aktif, restart dengan nomor baru
-                if (isTracking && phone !== currentPhoneNumber) {
-                    showToast(`🔄 Ganti ke nomor ${phone}. Memulai ulang...`, 'info', 1500);
-                    stopTracking();
-                    setTimeout(() => {
-                        startTracking();
-                    }, 400);
-                } else if (!isTracking) {
-                    startTracking();
-                } else {
-                    // nomor sama dan tracking aktif
-                    showToast(`📡 Melacak nomor ${phone}...`, 'info', 1000);
-                    refreshLocation();
-                }
-            });
+function startParentPolling() {
+  if (app.pollTimer) clearInterval(app.pollTimer);
+  app.pollTimer = setInterval(() => {
+    const data = readChildPos(app.sessionCode);
+    if (!data) return;
 
-            startBtn.addEventListener('click', startTracking);
-            stopBtn.addEventListener('click', stopTracking);
-            refreshBtn.addEventListener('click', refreshLocation);
-            clearHistoryBtn.addEventListener('click', clearHistory);
+    const age = Date.now() - data.ts;
+    if (age > 30000) {
+      setParentStatus('stale', data);
+      return;
+    }
 
-            // Reset tracking jika diperlukan (bisa ditambahkan tombol reset, tapi kita gunakan kombinasi)
-            // Kita tambahkan juga tombol reset di header? Lebih baik kita tambahkan hidden reset via double tap? 
-            // Untuk kemudahan, kita tambahkan event: jika klik header title 2 kali, reset
-            const headerTitle = document.querySelector('.header-title');
-            headerTitle.addEventListener('dblclick', function() {
-                if (confirm('Reset semua data dan hentikan pelacakan?')) {
-                    resetTracking();
-                }
-            });
+    // Update peta
+    const latlng = [data.lat, data.lng];
+    app.parentMarker.setLatLng(latlng);
+    app.parentCircle.setLatLng(latlng);
+    app.parentCircle.setRadius(data.acc || 60);
+    if (!app.lastChildPos) {
+      app.parentMap.setView(latlng, 16, {animate:true});
+    }
+    app.lastChildPos = data;
 
-            // Enter key pada input
-            phoneInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    trackBtn.click();
-                }
-            });
+    // Update stats
+    document.getElementById('statAkurasi').textContent = data.acc ? Math.round(data.acc)+'m' : '—';
+    document.getElementById('statUpdate').textContent  = fmt(data.ts);
 
-            // ---- Inisialisasi ----
-            function init() {
-                initMap();
-                updateButtons();
-                if (!navigator.geolocation) {
-                    showToast('❌ Browser tidak mendukung GPS. Gunakan Chrome/Android.', 'error', 4000);
-                    statusDisplay.innerHTML = `<span style="color:var(--coral);">● Tidak didukung</span>`;
-                }
+    setParentStatus('live', data);
 
-                imeiDisplay.textContent = mockIMEI;
-                providerDisplay.textContent = getRandomProvider();
+    // Tambah ke history
+    addToHistory(data);
 
-                console.log('👶 SafeTrack initialized. IMEI:', mockIMEI);
-            }
+  }, POLL_INTERVAL);
+}
 
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', init);
-            } else {
-                init();
-            }
+function addToHistory(data) {
+  // Hindari duplikat dengan timestamp yang sama
+  if (app.history.length && app.history[app.history.length-1].ts === data.ts) return;
+  app.history.push({...data});
+  if (app.history.length > 100) app.history.shift();
+  renderHistory(app.history);
+}
 
-        })();
-    </script>
+function renderHistory(hist) {
+  const el    = document.getElementById('parentHistList');
+  const count = document.getElementById('parentHistCount');
+  count.textContent = hist.length;
+  if (!hist.length) {
+    el.innerHTML = `<div class="history-empty"><i class="fas fa-map-marker-alt"></i>Riwayat kosong.</div>`;
+    return;
+  }
+  const rows = [...hist].reverse().map((h, i) => `
+    <div class="history-item">
+      <div class="hi-dot ${i > 0 ? 'old':''}"></div>
+      <span class="hi-time">${fmt(h.ts, true)}</span>
+      <span class="hi-coord">${h.lat.toFixed(5)}, ${h.lng.toFixed(5)}</span>
+      <span class="hi-acc">${h.acc ? '±'+Math.round(h.acc)+'m' : ''}</span>
+    </div>
+  `).join('');
+  el.innerHTML = rows;
+}
+
+function clearHistory() {
+  app.history = [];
+  renderHistory([]);
+  showToast('🗑️ Riwayat dihapus', 'info', 1500);
+}
+
+function centerMap() {
+  if (app.lastChildPos) {
+    app.parentMap.setView([app.lastChildPos.lat, app.lastChildPos.lng], 16, {animate:true});
+  } else {
+    showToast('⚠️ Posisi anak belum tersedia', 'warning');
+  }
+}
+
+/* ═══════════════════════════════════════
+   CHILD MODE
+═══════════════════════════════════════ */
+function initChild() {
+  initChildMap();
+  setupCodeInput();
+  // Cek jika ada kode dari URL param
+  const urlParams = new URLSearchParams(window.location.search);
+  const preCode   = urlParams.get('code');
+  const preMode   = urlParams.get('mode');
+  if (preMode === 'child' && preCode) {
+    document.getElementById('codeInput').value = preCode.toUpperCase();
+    connectToParent();
+  }
+}
+
+function initChildMap() {
+  if (app.childMap) return;
+  const center = [-6.2088, 106.8456];
+  const m = L.map('childMap', {zoomControl:false, attributionControl:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(m);
+  m.setView(center, 14);
+
+  const icon = L.divIcon({
+    html:`<div style="
+      width:38px;height:38px;border-radius:50%;
+      background:linear-gradient(135deg,#00C896,#009E78);
+      display:flex;align-items:center;justify-content:center;
+      font-size:18px;border:3px solid white;
+      box-shadow:0 4px 12px rgba(0,200,150,.5);
+      transform:translate(-50%,-50%);
+    ">📍</div>`,
+    className:'',iconSize:[38,38],iconAnchor:[19,19]
+  });
+  app.childMarker = L.marker(center,{icon}).addTo(m);
+  app.childMap = m;
+  setTimeout(()=>m.invalidateSize(), 400);
+}
+
+function setupCodeInput() {
+  const inp = document.getElementById('codeInput');
+  inp.addEventListener('input', (e) => {
+    let v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    e.target.value = v;
+    inp.className = 'code-input' + (v.length === 6 ? ' valid' : '');
+    document.getElementById('btnConnect').disabled = v.length !== 6;
+    document.getElementById('codeHint').textContent = v.length < 6
+      ? 'Masukkan 6 karakter kode yang diberikan orang tua'
+      : 'Kode siap — tekan Sambung';
+  });
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') connectToParent();
+  });
+  document.getElementById('btnConnect').disabled = true;
+}
+
+function connectToParent() {
+  const code = document.getElementById('codeInput').value.toUpperCase();
+  if (code.length !== 6) {
+    showToast('⚠️ Masukkan 6 karakter kode', 'warning');
+    return;
+  }
+  app.connectedCode = code;
+
+  // Update UI
+  document.getElementById('codeInput').className = 'code-input valid';
+  document.getElementById('codeHint').textContent = '✅ Terhubung ke kode: ' + code;
+  document.getElementById('childHeroTitle').textContent = 'Terhubung ke Orang Tua';
+  document.getElementById('childHeroSub').textContent   = 'Aktifkan tombol berbagi di bawah untuk mulai mengirim lokasi.';
+  document.getElementById('childHeroIcon').textContent  = '✅';
+  showToast('✅ Kode valid! Aktifkan berbagi lokasi.', 'success');
+}
+
+function toggleSharing() {
+  const on = document.getElementById('shareToggle').checked;
+
+  if (!app.connectedCode && on) {
+    showToast('⚠️ Sambungkan dulu ke kode orang tua!', 'warning');
+    document.getElementById('shareToggle').checked = false;
+    return;
+  }
+
+  app.isSharing = on;
+
+  if (on) {
+    startChildSharing();
+    document.getElementById('toggleTitle').textContent   = 'Lokasi Sedang Dibagikan';
+    document.getElementById('toggleSub').textContent     = 'Orang tua dapat melihat posisi Anda';
+    document.getElementById('toggleIcon').style.background = 'var(--safe-light)';
+    document.getElementById('toggleIcon').style.color = 'var(--safe-dark)';
+    document.getElementById('childDot').classList.add('active');
+    document.getElementById('childStatusText').textContent = 'Berbagi';
+  } else {
+    stopChildSharing();
+    document.getElementById('toggleTitle').textContent   = 'Berbagi Lokasi';
+    document.getElementById('toggleSub').textContent     = 'Aktifkan agar orang tua bisa melihat posisi Anda';
+    document.getElementById('toggleIcon').style.background = '';
+    document.getElementById('toggleIcon').style.color = '';
+    document.getElementById('childDot').classList.remove('active');
+    document.getElementById('childStatusText').textContent = 'Siap';
+  }
+}
+
+function startChildSharing() {
+  if (!navigator.geolocation) {
+    showToast('❌ GPS tidak tersedia di browser ini', 'error');
+    document.getElementById('shareToggle').checked = false;
+    return;
+  }
+
+  const opts = {enableHighAccuracy:true, timeout:15000, maximumAge:5000};
+
+  app.watchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      const {latitude:lat, longitude:lng, accuracy:acc} = pos.coords;
+      const ts = pos.timestamp;
+
+      // Tulis ke channel
+      writeChildPos(app.connectedCode, pos);
+
+      // Update child map
+      const latlng = [lat, lng];
+      app.childMarker.setLatLng(latlng);
+      app.childMap.setView(latlng, 16, {animate:true});
+
+      // Update child info fields
+      document.getElementById('childLat').textContent  = lat.toFixed(6);
+      document.getElementById('childLng').textContent  = lng.toFixed(6);
+      document.getElementById('childAcc').textContent  = acc ? '±'+Math.round(acc)+'m' : '—';
+      document.getElementById('childTime').textContent = fmt(ts);
+      document.getElementById('childHeroIcon').textContent = '📡';
+
+      app.childPosition = pos;
+    },
+    (err) => {
+      let msg = '❌ GPS gagal: ';
+      switch(err.code) {
+        case 1: msg += 'Izin lokasi ditolak.'; break;
+        case 2: msg += 'Sinyal tidak tersedia.'; break;
+        case 3: msg += 'Waktu habis.'; break;
+      }
+      showToast(msg, 'error', 4000);
+      document.getElementById('shareToggle').checked = false;
+      app.isSharing = false;
+    },
+    opts
+  );
+}
+
+function stopChildSharing() {
+  if (app.watchId) {
+    navigator.geolocation.clearWatch(app.watchId);
+    app.watchId = null;
+  }
+  if (app.connectedCode) {
+    // Tulis status offline ke channel
+    try {
+      const prev = readChildPos(app.connectedCode);
+      if (prev) {
+        prev.alive = false;
+        localStorage.setItem(channelKey(app.connectedCode), JSON.stringify(prev));
+      }
+    } catch(e) {}
+  }
+  showToast('⏹️ Berbagi lokasi dihentikan', 'info', 2000);
+}
+
+/* ═══════════════════════════════════════
+   INIT: Cek URL params saat pertama load
+═══════════════════════════════════════ */
+(function checkURLParams() {
+  const params = new URLSearchParams(window.location.search);
+  const mode   = params.get('mode');
+  const code   = params.get('code');
+  if (mode === 'child' && code) {
+    // Auto-masuk mode anak dari link orang tua
+    enterMode('child');
+  }
+})();
+
+</script>
 </body>
 </html>
